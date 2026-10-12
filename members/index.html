@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For current lab members | OPAL at CCSU</title>
+<meta name="description" content="Tools for research assistants in OPAL, the Organizational Psychology Answers Lab at Central Connecticut State University: the lab reflection log and the XR study tools.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#372B68">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/icon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same bones as the XR partner page: an indigo band, then a plain white body. */
+  :root{
+    --indigo:#372B68; --slate:#314F75; --steel:#4A6486; --mist:#798FA8; --coral:#F2513E;
+    --rule:#E6E9EC; --panel:#F4F6F8; --paper:#FFFFFF; --on-indigo:#D7D3E6;
+    --font:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --measure:40rem;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *,*::before,*::after{box-sizing:inherit;margin:0;padding:0;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;}
+  body{font-family:var(--font);font-size:1rem;line-height:1.72;color:var(--slate);background:var(--paper);}
+  img{max-width:100%;height:auto;display:block;}
+  a{color:var(--indigo);font-weight:500;text-underline-offset:.2em;text-decoration-thickness:1px;}
+  a:hover{text-decoration-color:var(--coral);text-decoration-thickness:2px;}
+  :focus-visible{outline:3px solid var(--coral);outline-offset:3px;border-radius:2px;}
+  .skip{position:absolute;left:-9999px;top:0;background:#fff;color:var(--indigo);padding:.6rem 1rem;z-index:10;}
+  .skip:focus{left:1rem;top:1rem;}
+  .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  .wrap{max-width:62rem;margin:0 auto;padding:0 1.25rem;}
+  .prose{max-width:var(--measure);}
+  h1,h2,h3{font-family:var(--font);color:var(--indigo);line-height:1.15;}
+  h2{font-size:clamp(1.55rem,3.6vw,2.05rem);font-weight:600;letter-spacing:-.01em;margin-bottom:.9rem;}
+  h3{font-size:1.1rem;font-weight:600;margin-bottom:.35rem;}
+  p + p{margin-top:.85rem;}
+  section{padding:3.25rem 0 0;}
+
+  .band{background:var(--indigo);color:#fff;padding:1.5rem 0 2.4rem;}
+  .topline{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .lockup{display:flex;align-items:center;gap:.85rem;color:#fff;}
+  .lockup .mark{width:40px;height:40px;flex:none;}
+  .lockup .wm{font-weight:600;font-size:1.3rem;letter-spacing:.12em;line-height:1;}
+  .lockup .sep{width:1px;height:1.6rem;background:rgba(255,255,255,.35);}
+  .lockup .org{font-weight:400;font-size:1.2rem;letter-spacing:.06em;line-height:1;color:var(--on-indigo);}
+  .home{color:var(--on-indigo);font-weight:400;font-size:.95rem;}
+  .home:hover{color:#fff;}
+  .band h1{color:#fff;font-size:clamp(2.1rem,6vw,3.4rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:2.1rem 0 1rem;max-width:18ch;}
+  .lead{font-size:1.1rem;line-height:1.65;max-width:36rem;color:#EEECF5;}
+
+  .tools{list-style:none;display:grid;gap:1.4rem;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));margin-top:1.4rem;}
+  .tool{border:1px solid var(--rule);border-top:4px solid var(--coral);padding:1.2rem 1.3rem 1.3rem;background:#fff;display:flex;flex-direction:column;}
+  .tool .kind{font-weight:500;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);margin-bottom:.45rem;}
+  .tool p{font-size:.95rem;line-height:1.6;}
+  .tool .rule{margin-top:.85rem;padding:.7rem .85rem;background:var(--panel);border-left:4px solid var(--indigo);font-size:.9rem;line-height:1.5;}
+  .tool .rule b{color:var(--indigo);font-weight:600;}
+  .btn{display:inline-block;align-self:flex-start;margin-top:1.1rem;font-family:var(--font);font-weight:600;font-size:1rem;line-height:1;text-decoration:none;padding:.85rem 1.2rem;border-radius:4px;background:var(--indigo);color:#fff;border:2px solid var(--indigo);}
+  .btn:hover{background:var(--slate);border-color:var(--slate);color:#fff;}
+  .addr{font-size:.85rem;color:var(--steel);margin-top:.5rem;word-break:break-all;}
+
+  .also{list-style:none;margin-top:.4rem;display:grid;gap:.55rem;max-width:var(--measure);}
+  .also li{position:relative;padding-left:1.25rem;}
+  .also li::before{content:"";position:absolute;left:0;top:.72rem;width:.5rem;height:.5rem;background:var(--mist);}
+  .also span{color:var(--steel);}
+
+  .person{padding:1rem 1.1rem;background:var(--panel);max-width:28rem;margin-top:.6rem;}
+  .person h3{margin-bottom:.2rem;}
+  .person p{font-size:.95rem;line-height:1.5;}
+
+  footer{margin-top:3.5rem;padding:1.6rem 0 2.4rem;border-top:1px solid var(--rule);font-size:.85rem;color:var(--steel);}
+  footer p + p{margin-top:.4rem;}
+  @media (max-width:34rem){ .band h1{margin-top:1.6rem;} }
+  @media print{ .skip,.btn{display:none !important;} .band{background:#fff;color:var(--indigo);} .band h1,.lead,.lockup{color:var(--indigo);} section{padding-top:1.6rem;break-inside:avoid;} }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="band">
+  <div class="wrap">
+    <div class="topline">
+      <div class="lockup">
+        <img class="mark" src="../assets/opal-mark-indigo.png" alt="" width="40" height="40">
+        <span class="wm">OPAL</span><span class="sep" aria-hidden="true"></span><span class="org">CCSU</span>
+        <span class="vh">, Organizational Psychology Answers Lab, Central Connecticut State University</span>
+      </div>
+      <a class="home" href="../">Caleb Bragg, Ph.D.</a>
+    </div>
+    <h1>For current lab members</h1>
+    <p class="lead">The tools research assistants use in OPAL. Each one runs in the browser. The reflection log is the only one that sends anything, and it goes to the lab's own record.</p>
+  </div>
+</header>
+
+<main id="main">
+
+  <section aria-labelledby="tools-h">
+    <div class="wrap">
+      <h2 id="tools-h">Lab tools</h2>
+      <p class="prose">Bookmark these on the phone or laptop you bring to the lab. Both open without a login.</p>
+      <ul class="tools">
+        <li class="tool">
+          <div class="kind">After every session you run</div>
+          <h3>Lab reflection log</h3>
+          <p>Log each session the same day. Three short parts: what you did, how it went, and what you take from it. Speak or type; most logs take about three minutes. The entry goes to the lab log, you get a Log ID, and you can print a copy for your own records.</p>
+          <p>Keep participants anonymous: no names, participant codes, or details that could identify someone.</p>
+          <div class="rule"><b>Not a log entry.</b> A problem with a participant's safety, or a departure from the approved protocol, goes to Dr. Bragg directly, the same day.</div>
+          <a class="btn" href="https://opal.ccsu.edu/labrefl/">Open the reflection log</a>
+          <div class="addr">opal.ccsu.edu/labrefl</div>
+        </li>
+        <li class="tool">
+          <div class="kind">XR Meditation Skill Transfer study</div>
+          <h3>OPAL Lab Tools</h3>
+          <p>Internal tools for the XR study, one per page. The VirtualSpeech score reader matches VirtualSpeech session reports to participants in the master sheet by date and headset station, then exports the VS1 and VS2 scores.</p>
+          <p>It runs in the browser and uploads nothing. It fetches one library file when it opens, so it needs a connection for that.</p>
+          <a class="btn" href="https://opal.ccsu.edu/lab/">Open the lab tools</a>
+          <div class="addr">opal.ccsu.edu/lab</div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="also-h">
+    <div class="wrap">
+      <h2 id="also-h">Also on hand</h2>
+      <ul class="also">
+        <li><a href="https://opal.ccsu.edu/reflect/">Focused Reflection</a> <span>&middot; the student reflection tool, with the instructor setup for sharing a link</span></li>
+        <li><a href="https://opal.ccsu.edu/labbench/">Lab Bench</a> <span>&middot; the practice benches for Psy 215 and Psy 210</span></li>
+        <li><a href="../xr/">Employer partner sessions</a> <span>&middot; the public page for the XR study's spring 2027 sessions</span></li>
+        <li><a href="https://www.ccsu.edu/xr-lab">CCSU XR Lab</a> <span>&middot; where the study runs</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="reach-h">
+    <div class="wrap">
+      <h2 id="reach-h">Reach Dr. Bragg</h2>
+      <div class="person">
+        <h3>Caleb B. Bragg, Ph.D.</h3>
+        <p>Principal investigator. Marcus White Hall 202.<br><a href="mailto:bragg.cb@ccsu.edu">bragg.cb@ccsu.edu</a></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>OPAL, the Organizational Psychology Answers Lab, Department of Psychological Science, Central Connecticut State University. This page is for current lab members and is not listed by search engines.</p>
+    <p><a href="../">Back to Caleb Bragg, Ph.D.</a></p>
+  </div>
+</footer>
+</body>
+</html>
