@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Knowledge as the Real Durable Skill: A Conceptual Overview | Caleb Bragg, Ph.D.</title>
+<meta name="description" content="A brief, citable introduction to Caleb B. Bragg's whitepaper Knowledge: The Real Durable Skill. The durable skills employers name are knowledge in use; what is perishable is the label.">
+<meta name="author" content="Caleb B. Bragg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Knowledge as the Real Durable Skill: A Conceptual Overview">
+<meta property="og:description" content="The durable skills employers name are knowledge in use. What is perishable is the label. What is durable is the knowledge underneath it.">
+<meta property="og:image" content="https://cbraggphd.github.io/assets/icon-512.png">
+<meta property="og:url" content="https://cbraggphd.github.io/knowledge/">
+<meta name="theme-color" content="#372B68">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!--
+  Reading page for the conceptual overview (PDF in ../assets/).
+  The text below matches the PDF. The full whitepaper lives on OSF:
+  https://doi.org/10.31234/osf.io/zr8u5_v1
+  Page added October 28, 2026.
+-->
+<style>
+  /* Same bones as the XR and members pages: an indigo band, then a plain white body. */
+  :root{
+    --indigo:#372B68; --slate:#314F75; --steel:#4A6486; --mist:#798FA8; --coral:#F2513E;
+    --rule:#E6E9EC; --panel:#F4F6F8; --paper:#FFFFFF; --on-indigo:#D7D3E6;
+    --font:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --measure:40rem;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *,*::before,*::after{box-sizing:inherit;margin:0;padding:0;}
+  html{scroll-padding-top:1rem;-webkit-text-size-adjust:100%;}
+  @media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth;} }
+  body{font-family:var(--font);font-size:1rem;line-height:1.72;color:var(--slate);background:var(--paper);}
+  img{max-width:100%;height:auto;display:block;}
+  a{color:var(--indigo);font-weight:500;text-underline-offset:.2em;text-decoration-thickness:1px;}
+  a:hover{text-decoration-color:var(--coral);text-decoration-thickness:2px;}
+  :focus-visible{outline:3px solid var(--coral);outline-offset:3px;border-radius:2px;}
+  .skip{position:absolute;left:-9999px;top:0;background:#fff;color:var(--indigo);padding:.6rem 1rem;z-index:10;}
+  .skip:focus{left:1rem;top:1rem;}
+  .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  .wrap{max-width:62rem;margin:0 auto;padding:0 1.25rem;}
+  h1,h2,h3{font-family:var(--font);color:var(--indigo);line-height:1.15;}
+
+  .band{background:var(--indigo);color:#fff;padding:1.5rem 0 2.4rem;}
+  .topline{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:.75rem;color:#fff;font-weight:600;font-size:1.05rem;text-decoration:none;}
+  .brand img{width:36px;height:36px;flex:none;}
+  .brand:hover{color:#fff;text-decoration:underline;text-decoration-color:var(--coral);}
+  .home{color:var(--on-indigo);font-weight:400;font-size:.95rem;}
+  .home:hover{color:#fff;}
+  .kicker{margin-top:2.2rem;font-weight:500;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:var(--on-indigo);}
+  .band h1{color:#fff;font-size:clamp(2.1rem,6vw,3.4rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:.55rem 0 .4rem;max-width:18ch;}
+  .band h1 .sub{display:block;font-weight:500;font-size:.5em;letter-spacing:0;line-height:1.3;color:var(--on-indigo);margin-top:.5rem;}
+  .byline{font-size:1.05rem;line-height:1.55;color:#EEECF5;margin-top:1rem;}
+  .byline span{display:block;font-size:.95rem;color:var(--on-indigo);}
+  .actions{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem 1.5rem;margin-top:1.6rem;}
+  .btn{display:inline-block;font-family:var(--font);font-weight:600;font-size:1.02rem;line-height:1.2;text-decoration:none;padding:.9rem 1.3rem;border-radius:4px;background:#fff;color:var(--indigo);border:2px solid #fff;}
+  .btn:hover{background:var(--panel);color:var(--indigo);}
+  .band .actions a:not(.btn){color:#fff;font-weight:400;}
+  .license{margin-top:1.3rem;font-size:.85rem;color:var(--on-indigo);}
+  .license a{color:#fff;font-weight:400;}
+
+  /* Reading column */
+  .reading{max-width:var(--measure);font-size:1.04rem;line-height:1.8;}
+  .reading p + p{margin-top:1rem;}
+  .reading em{font-style:italic;}
+  .intro{margin-top:2.6rem;padding:1.1rem 1.25rem;background:var(--panel);border-left:4px solid var(--indigo);}
+  .toc{margin-top:1.8rem;}
+  .reading .toc h2{font-size:.82rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);margin:0 0 .45rem;}
+  .toc ol{list-style:none;display:flex;flex-wrap:wrap;gap:.35rem 1.2rem;font-size:.95rem;line-height:1.5;}
+  .toc li{display:flex;align-items:baseline;gap:.4rem;}
+  .toc li::before{content:"";width:.45rem;height:.45rem;background:var(--mist);flex:none;transform:translateY(-.1rem);}
+  .reading section{padding-top:2.6rem;}
+  .reading h2{font-size:clamp(1.45rem,3.4vw,1.85rem);font-weight:600;letter-spacing:-.01em;margin-bottom:.8rem;}
+
+  .more{margin-top:2.8rem;padding:1.3rem 1.35rem 1.4rem;border:1px solid var(--rule);border-top:4px solid var(--coral);max-width:var(--measure);}
+  .more h2{font-size:1.2rem;font-weight:600;margin-bottom:.4rem;}
+  .more p{font-size:1rem;line-height:1.65;}
+  .btn-solid{background:var(--indigo);color:#fff;border-color:var(--indigo);margin-top:1rem;}
+  .btn-solid:hover{background:var(--slate);border-color:var(--slate);color:#fff;}
+  .more .pdf{display:inline-block;margin:1rem 0 0 1.2rem;font-size:.95rem;}
+
+  .back h2{font-size:1.35rem;font-weight:600;margin-bottom:.8rem;}
+  .refs{list-style:none;max-width:44rem;font-size:.92rem;line-height:1.6;}
+  .refs li{padding-left:2em;text-indent:-2em;margin-top:.6rem;overflow-wrap:anywhere;}
+  .refs a{font-weight:400;}
+  .note{max-width:44rem;font-size:.92rem;line-height:1.65;color:var(--slate);}
+  .note p + p{margin-top:.7rem;}
+  .note b{font-weight:600;color:var(--indigo);}
+  .note a{font-weight:400;overflow-wrap:anywhere;}
+
+  footer{margin-top:3.5rem;padding:1.6rem 0 2.4rem;border-top:1px solid var(--rule);font-size:.85rem;color:var(--steel);}
+  footer p + p{margin-top:.4rem;}
+  @media (max-width:34rem){
+    .kicker{margin-top:1.6rem;}
+    .reading{font-size:1rem;line-height:1.75;}
+    .intro{padding:1rem 1rem;}
+    .more .pdf{display:block;margin:.9rem 0 0;}
+  }
+  @media print{
+    .skip,.actions,.toc,.more .btn{display:none !important;}
+    .band{background:#fff;color:var(--indigo);padding-bottom:1rem;}
+    .band h1,.band h1 .sub,.byline,.byline span,.brand,.kicker,.license,.license a{color:var(--indigo);}
+    .reading section{padding-top:1.4rem;}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="band">
+  <div class="wrap">
+    <div class="topline">
+      <a class="brand" href="../"><img src="../assets/opal-mark-indigo.png" alt="" width="36" height="36">Caleb Bragg, Ph.D.</a>
+      <a class="home" href="../#publications">Publications</a>
+    </div>
+    <p class="kicker">Conceptual overview</p>
+    <h1>Knowledge as the Real Durable Skill<span class="vh">: </span><span class="sub">A Conceptual Overview</span></h1>
+    <p class="byline">Caleb B. Bragg<span>Department of Psychological Science, Central Connecticut State University</span></p>
+    <div class="actions">
+      <a class="btn" href="https://doi.org/10.31234/osf.io/zr8u5_v1">Read the full whitepaper on OSF</a>
+      <a href="../assets/Bragg_Knowledge_Real_Durable_Skill_Concept_Overview.pdf" download>Download this overview (PDF)</a>
+    </div>
+    <p class="license">© 2026 Caleb B. Bragg. Licensed <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>. <a href="#author-note">Author note</a></p>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <article class="reading">
+
+      <p class="intro">This conceptual overview summarizes the core claims of <a href="https://doi.org/10.31234/osf.io/zr8u5_v1"><em>Knowledge: The Real Durable Skill</em></a> (Bragg, 2026b), a whitepaper that presents the argument, the evidence, the practical moves, and the empirical designs in full. The present piece is intended as a brief, citable introduction for readers who want to understand what the argument is and why it matters without engaging the full treatment. All claims are developed in greater depth, with their sources, in the whitepaper.</p>
+
+      <nav class="toc" aria-labelledby="toc-h">
+        <h2 id="toc-h">In this overview</h2>
+        <ol>
+          <li><a href="#problem">The Problem</a></li>
+          <li><a href="#claim">The Claim</a></li>
+          <li><a href="#mechanism">The Mechanism</a></li>
+          <li><a href="#replanting">Re-planting and Appetite</a></li>
+          <li><a href="#prediction">The Prediction</a></li>
+          <li><a href="#matters">Why This Matters</a></li>
+        </ol>
+      </nav>
+
+      <section aria-labelledby="problem">
+        <h2 id="problem">The Problem</h2>
+        <p>Employers say they want durable skills: communication, critical thinking, teamwork, leadership. The label comes from America Succeeds (2021), whose analysis of 82 million job postings found that seven of the ten most-requested skills were durable ones, and whose 2025 update reports that three quarters of postings now ask for at least one (America Succeeds &amp; Lightcast, 2025). The framing sorts what workers bring into two bins: technical skills that perish with the software, and durable skills that travel from job to job. It has spread through state education agencies, career centers, and corporate talent strategy, and it is carried by the frameworks everyone else adopts, from NACE’s eight career readiness competencies (National Association of Colleges and Employers, 2024) to the Business-Higher Education Forum’s seven AI-enabled competencies (BHEF, 2026). Across all of them, one construct is missing. There is a category for communication. There is no category for what the communicator knows.</p>
+      </section>
+
+      <section aria-labelledby="claim">
+        <h2 id="claim">The Claim</h2>
+        <p>The bins are backwards. The durable skills employers name are knowledge in use: organized bodies of domain information deployed on a task. They look free-floating only because the measurement tradition that could see knowledge was abandoned. What is perishable is the label. What is durable is the knowledge underneath it.</p>
+        <p>Knowledge is not a skill, and the argument does not say it is. Job analysis kept the two apart for half a century: a knowledge is a body of information a person applies to a task, and a skill is the proficiency with which they apply it. The argument points at what happened to the first half of that distinction when the people who describe jobs stopped using it.</p>
+      </section>
+
+      <section aria-labelledby="mechanism">
+        <h2 id="mechanism">The Mechanism: A Measurement Artifact</h2>
+        <p>The Uniform Guidelines on Employee Selection Procedures (1978) define knowledge, skill, and ability as three separate constructs and add that knowledges, skills, and abilities are not behaviors, although they may be applied in work behaviors. The validity literature then showed where the constructs connect: general cognitive ability predicts job performance primarily through job knowledge, because ability predicts how much of the job a person learns and what they have learned predicts how they perform (Hunter, 1986). Knowledge is where ability becomes performance.</p>
+        <p>Competency modeling replaced job analysis in organizational practice through the 1990s, at a documented cost in rigor (Shippmann et al., 2000), substituting organization-level behavioral themes for task-anchored constructs (Sanchez &amp; Levine, 2009). A behavioral theme has no slot for a body of information. “Communicates effectively” cannot hold the product, the regulation, the patient population, or the analysis the communicating runs on. When the method changed, knowledge did not move to another place in the model. It had no place to go. It was dropped.</p>
+        <p>The posting taxonomies that generate today’s durable-skills evidence inherit that logic. The Lightcast Open Skills taxonomy sorts its entries into specialized skills, common skills, and certifications, and counts familiarity with a subject as a skill by definition (Lightcast, n.d.); job-analytic taxonomies such as O*NET keep knowledge as its own descriptor domain (Peterson et al., 2001). Run 82 million postings through an instrument with no knowledge category and knowledge cannot come out the other end. “Critical thinking” in a posting is not an observation about what makes a worker effective. It is the residue of a job description after the knowledge has been stripped out by a method that cannot see it. Skills-based hiring ran the same experiment twice: the federal version, through the Office of Personnel Management and job analysis, kept the knowledge construct when it dropped the degree; the state and private versions, through postings, lost it, and the postings filled with labels.</p>
+      </section>
+
+      <section aria-labelledby="replanting">
+        <h2 id="replanting">Re-planting and Appetite</h2>
+        <p>The durable-skills literature does not claim these skills are knowledge-free. Its claim is that they transfer, and that is a far-transfer claim the transfer literature does not support. Transfer depends on the identical elements shared between the practice domain and the performance domain (Thorndike &amp; Woodworth, 1901); it becomes less likely as contexts diverge, with knowledge domain the hardest case (Barnett &amp; Ceci, 2002); and meta-analyses of cognitive training find that far transfer rarely occurs (Sala &amp; Gobet, 2017). Critical thinking about pharmacology requires pharmacology (Tricot &amp; Sweller, 2014).</p>
+        <p>Yet employers are not wrong that the person who thought well in one job tends to think well in the next. Something carries over. It is not the skill. I call it <em>re-planting</em>: the acquisition of a new domain’s organized knowledge by a person whose existing knowledge tradition tells them what to acquire and how to organize it. This is identical elements with the element relocated. What the two domains share is not their content but the person’s way of knowing a domain, and the principle then predicts exactly what employers see: no transfer of the skill on arrival, and fast acquisition of the knowledge after it.</p>
+        <p>Durability, on this account, is appetite rather than context-independence. Knowledge does not decay; it accumulates, and it generates demand for more of itself, because only someone who knows enough can see where their knowledge ends. Specific tools go stale. The organized tradition that lets a person absorb the next tool, and that decides what the old one is now for, does not. The skills employers call durable grow because they are hungry for knowledge, and they are hungry for knowledge because they are made of it.</p>
+      </section>
+
+      <section aria-labelledby="prediction">
+        <h2 id="prediction">The Prediction</h2>
+        <p>A measurement argument owes a measurement. If employer calibration, the correspondence between an employer’s evaluation of a skill and the person’s demonstrated performance, improves when the knowledge behind the skill is named, then the skills-only framing is measurably worse, not merely incomplete. A skill label is a costless signal anyone can send. A named body of knowledge is expensive to fake and can be checked with a question. The whitepaper describes three designs in hand: a within-student comparison of knowledge-foregrounded and skills-only presentations rated by employer partners in summer 2027, a job-posting analysis, and a student articulation instrument coded for whether students name knowledge or default to labels. If naming the knowledge does not improve calibration, the claim fails in the only place it can be tested.</p>
+      </section>
+
+      <section aria-labelledby="matters">
+        <h2 id="matters">Why This Matters</h2>
+        <p>Generative AI has raised the stakes. Inside the frontier of what a model does well, AI helps the least experienced workers most by disseminating the knowledge of the most able; outside it, only the worker’s own knowledge catches the error, and nothing in the fluent output says which side of the frontier the task is on (Dell’Acqua et al., 2023). The knowledge did not matter less. It moved, and the question the durable-skills discourse cannot ask is who holds it.</p>
+        <p>Three distinctions hold better than perishable and durable. Destination-defined against boundary-crossing sorts competencies by who sets the standard and who can read the label. Tool against tradition sorts what perishes from what accumulates, and what gets used from what decides the use. Label against knowledge sorts what coordinates from what performs. Knowledge is on the durable side of all three. For employers, the practical move is one line: under every competency, the knowledge it operates on in your jobs. For educators, it is the same line from the other side: teach students to name the knowledge behind the skill every time they articulate their readiness (Bragg, 2026a; Bragg &amp; Conway, 2026), because the translation into skills vocabulary is leaky in one direction, and the knowledge is what drops out.</p>
+      </section>
+
+    </article>
+
+    <aside class="more" aria-labelledby="more-h">
+      <h2 id="more-h">Read the full whitepaper</h2>
+      <p><em>Knowledge: The Real Durable Skill. What the skills conversation lost, and how employers, educators, and the workforce field can put it back.</em> The whitepaper presents the argument, the evidence, the practical moves, and the empirical designs in full.</p>
+      <a class="btn btn-solid" href="https://doi.org/10.31234/osf.io/zr8u5_v1">Read it on OSF</a><a class="pdf" href="../assets/Bragg_Knowledge_Real_Durable_Skill_Concept_Overview.pdf" download>Download this overview (PDF)</a>
+    </aside>
+
+    <section class="back" aria-labelledby="refs-h" style="padding-top:3rem">
+      <h2 id="refs-h">References</h2>
+      <ol class="refs">
+        <li>America Succeeds. (2021). <em>The high demand for durable skills</em>. America Succeeds.</li>
+        <li>America Succeeds, &amp; Lightcast. (2025). <em>Durable by design: An update on the high demand for durable skills</em>. America Succeeds.</li>
+        <li>Barnett, S. M., &amp; Ceci, S. J. (2002). When and where do we apply what we learn? A taxonomy for far transfer. <em>Psychological Bulletin, 128</em>(4), 612–637. <a href="https://doi.org/10.1037/0033-2909.128.4.612">https://doi.org/10.1037/0033-2909.128.4.612</a></li>
+        <li>Bragg, C. B. (2026a). <em>Articulation through iteration: The Career Readiness Pathway as a boundary-crossing framework for student development and stakeholder alignment</em> [Preprint]. PsyArXiv. <a href="https://doi.org/10.31234/osf.io/7avsq_v1">https://doi.org/10.31234/osf.io/7avsq_v1</a></li>
+        <li>Bragg, C. B. (2026b). <em>Knowledge: The real durable skill. What the skills conversation lost, and how employers, educators, and the workforce field can put it back</em> [Whitepaper]. OSF. [Preprint]. PsyArXiv <a href="https://doi.org/10.31234/osf.io/zr8u5_v1">https://doi.org/10.31234/osf.io/zr8u5_v1</a></li>
+        <li>Bragg, C. B., &amp; Conway, J. M. (2026). Career readiness pathway (CR Path): How a degree in psychology answers the stakeholder’s call for career-ready students. <em>Scholarship of Teaching and Learning in Psychology</em>. Advance online publication. <a href="https://doi.org/10.1037/stl0000480">https://doi.org/10.1037/stl0000480</a></li>
+        <li>Business-Higher Education Forum. (2026). <em>How to build an AI-resilient workforce: The AI-Enabled Professional Framework</em>. BHEF. <a href="https://www.bhef.com/publications/how-to-build-an-ai-resilient-workforce-the-ai-enabled-professional-framework">https://www.bhef.com/publications/how-to-build-an-ai-resilient-workforce-the-ai-enabled-professional-framework</a></li>
+        <li>Dell’Acqua, F., McFowland, E., III, Mollick, E. R., Lifshitz-Assaf, H., Kellogg, K., Rajendran, S., Krayer, L., Candelon, F., &amp; Lakhani, K. R. (2023). <em>Navigating the jagged technological frontier: Field experimental evidence of the effects of artificial intelligence on knowledge worker productivity and quality</em> (Harvard Business School Working Paper No. 24-013). <a href="https://doi.org/10.2139/ssrn.4573321">https://doi.org/10.2139/ssrn.4573321</a></li>
+        <li>Hunter, J. E. (1986). Cognitive ability, cognitive aptitudes, job knowledge, and job performance. <em>Journal of Vocational Behavior, 29</em>(3), 340–362. <a href="https://doi.org/10.1016/0001-8791(86)90013-8">https://doi.org/10.1016/0001-8791(86)90013-8</a></li>
+        <li>Lightcast. (n.d.). <em>Open Skills: Frequently asked questions</em>. <a href="https://lightcast.io/open-skills/faqs">https://lightcast.io/open-skills/faqs</a></li>
+        <li>National Association of Colleges and Employers. (2024). <em>Career readiness: Competencies for a career-ready workforce</em> (Rev. April 2024). <a href="https://www.naceweb.org/career-readiness/competencies/">https://www.naceweb.org/career-readiness/competencies/</a></li>
+        <li>Peterson, N. G., Mumford, M. D., Borman, W. C., Jeanneret, P. R., Fleishman, E. A., Levin, K. Y., Campion, M. A., Mayfield, M. S., Morgeson, F. P., Pearlman, K., Gowing, M. K., Lancaster, A. R., Silver, M. B., &amp; Dye, D. M. (2001). Understanding work using the Occupational Information Network (O*NET): Implications for practice and research. <em>Personnel Psychology, 54</em>(2), 451–492. <a href="https://doi.org/10.1111/j.1744-6570.2001.tb00100.x">https://doi.org/10.1111/j.1744-6570.2001.tb00100.x</a></li>
+        <li>Sala, G., &amp; Gobet, F. (2017). Does far transfer exist? Negative evidence from chess, music, and working memory training. <em>Current Directions in Psychological Science, 26</em>(6), 515–520. <a href="https://doi.org/10.1177/0963721417712760">https://doi.org/10.1177/0963721417712760</a></li>
+        <li>Sanchez, J. I., &amp; Levine, E. L. (2009). What is (or should be) the difference between competency modeling and traditional job analysis? <em>Human Resource Management Review, 19</em>(2), 53–63. <a href="https://doi.org/10.1016/j.hrmr.2008.10.002">https://doi.org/10.1016/j.hrmr.2008.10.002</a></li>
+        <li>Shippmann, J. S., Ash, R. A., Battista, M., Carr, L., Eyde, L. D., Hesketh, B., Kehoe, J., Pearlman, K., Prien, E. P., &amp; Sanchez, J. I. (2000). The practice of competency modeling. <em>Personnel Psychology, 53</em>(3), 703–740. <a href="https://doi.org/10.1111/j.1744-6570.2000.tb00220.x">https://doi.org/10.1111/j.1744-6570.2000.tb00220.x</a></li>
+        <li>Thorndike, E. L., &amp; Woodworth, R. S. (1901). The influence of improvement in one mental function upon the efficiency of other functions (I). <em>Psychological Review, 8</em>(3), 247–261. <a href="https://doi.org/10.1037/h0074898">https://doi.org/10.1037/h0074898</a></li>
+        <li>Tricot, A., &amp; Sweller, J. (2014). Domain-specific knowledge and why teaching generic skills does not work. <em>Educational Psychology Review, 26</em>(2), 265–283. <a href="https://doi.org/10.1007/s10648-013-9243-1">https://doi.org/10.1007/s10648-013-9243-1</a></li>
+        <li>Uniform Guidelines on Employee Selection Procedures, 29 C.F.R. § 1607 (1978). <a href="https://www.ecfr.gov/current/title-29/part-1607">https://www.ecfr.gov/current/title-29/part-1607</a></li>
+      </ol>
+    </section>
+
+    <section class="back" id="author-note" aria-labelledby="note-h" style="padding-top:2.8rem">
+      <h2 id="note-h">Author Note</h2>
+      <div class="note">
+        <p><b>Intellectual Property and Licensing:</b> The argument summarized here, including the distinctions it introduces (destination-defined against boundary-crossing, tool against tradition, label against knowledge), the re-planting and appetite accounts of durability, and the calibration prediction, is the original scholarly work of the author. The Career Readiness Pathway (CR Path; Bragg &amp; Conway, 2026) and its articulation-through-iteration account of development (Bragg, 2026a) are the original scholarly work of the author.</p>
+        <p>© 2026 Caleb B. Bragg</p>
+        <p>This work is licensed under a Creative Commons Attribution–NonCommercial 4.0 International License (CC BY-NC 4.0). It may be used, shared, and adapted for non-commercial educational, scholarly, and workforce-development purposes with appropriate attribution. Commercial use—including incorporation into textbooks, credential programs, software platforms, assessment tools, consulting services, or other revenue-generating activities—requires explicit written permission from the author.</p>
+        <p><a href="https://creativecommons.org/licenses/by-nc/4.0/">https://creativecommons.org/licenses/by-nc/4.0/</a></p>
+        <p>The authoritative version of the full whitepaper, including licensing terms, is available on the <a href="https://doi.org/10.31234/osf.io/zr8u5_v1">Open Science Framework (OSF)</a> under a Creative Commons Attribution–NonCommercial 4.0 International License.</p>
+        <p>I have no known conflicts of interest to disclose.</p>
+        <p>ORCID: <a href="https://orcid.org/0009-0004-7738-7941">https://orcid.org/0009-0004-7738-7941</a></p>
+        <p>Correspondence concerning this overview should be addressed to Caleb B. Bragg, Central Connecticut State University, 1615 Stanley Street, New Britain, CT, 06050, United States.</p>
+        <p>Email: <a href="mailto:bragg.cb@ccsu.edu">bragg.cb@ccsu.edu</a></p>
+        <p>Disclosure: This overview was developed with the assistance of generative AI (Anthropic Claude) for literature search, dialectical stress-testing of arguments, structural refinement, and drafting support; all AI-drafted text was revised by the author. All intellectual content, arguments, and scholarly decisions are the author’s own.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Caleb B. Bragg, Ph.D., Department of Psychological Science, Central Connecticut State University.</p>
+    <p>Page added October 28, 2026. <a href="../">Back to Caleb Bragg, Ph.D.</a></p>
+  </div>
+</footer>
+</body>
+</html>
