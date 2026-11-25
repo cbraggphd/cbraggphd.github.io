@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Doc Reader</title>
+<meta name="description" content="Turn a PDF into a recording you can listen to.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Doc Reader">
+<meta name="theme-color" content="#f6f1e6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#181714" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+@font-face{font-family:"Atkinson Hyperlegible";src:url(fonts/ah-400.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible";src:url(fonts/ah-700.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{
+  --paper:#f6f1e6; --card:#fffdf8; --ink:#24211c; --muted:#5d564b; --line:#ddd4c3;
+  --accent:#0e5a5f; --accent-ink:#ffffff; --soft:#dbe9e6; --warn:#8f2f1f; --warn-soft:#f6e3dc;
+  --shadow:0 1px 2px rgba(40,30,10,.06),0 6px 20px rgba(40,30,10,.07);
+}
+@media (prefers-color-scheme: dark){
+  :root{--paper:#181714; --card:#211f1b; --ink:#ece6da; --muted:#b1a999; --line:#3a362f;
+    --accent:#3aa39d; --accent-ink:#0c1514; --soft:#233634; --warn:#f0a391; --warn-soft:#3a231e;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:400 19px/1.6 "Atkinson Hyperlegible",Verdana,"Segoe UI",system-ui,sans-serif;letter-spacing:.012em;word-spacing:.04em}
+main{max-width:760px;margin:0 auto;padding:28px 18px 200px}
+h1{font-size:34px;line-height:1.2;margin:0 0 6px;letter-spacing:0}
+h2{font-size:22px;line-height:1.3;margin:38px 0 12px;letter-spacing:0}
+p{margin:0 0 12px}
+.lede{color:var(--muted);max-width:34em}
+button,select,input,textarea{font:inherit;color:inherit;letter-spacing:inherit}
+button{cursor:pointer}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:10px 18px;border-radius:12px;
+  border:2px solid var(--line);background:var(--card);font-weight:700;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.quiet{border-color:transparent;background:transparent;font-weight:400;text-decoration:underline;text-underline-offset:3px;padding:10px 8px}
+.btn.danger{color:var(--warn)}
+.btn[disabled]{opacity:.55;cursor:default}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:8px}
+svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+#drop{margin-top:22px;border:3px dashed var(--line);border-radius:18px;background:var(--card);padding:30px 20px;text-align:center}
+#drop.over{border-color:var(--accent);background:var(--soft)}
+#drop .btn{font-size:21px;min-height:60px;padding:14px 28px}
+#drop p{margin:14px 0 0;color:var(--muted)}
+
+#status{margin:16px 0 0;padding:12px 16px;border-radius:12px;background:var(--soft);display:none}
+#status.on{display:block}
+#status.bad{background:var(--warn-soft);color:var(--warn)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;margin:0 0 14px;box-shadow:var(--shadow)}
+.card h3{font-size:21px;line-height:1.35;margin:0 0 4px;letter-spacing:0;overflow-wrap:anywhere}
+.card .meta{color:var(--muted);margin:0 0 10px}
+.card .err{color:var(--warn);margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bar{height:14px;border-radius:7px;background:var(--soft);overflow:hidden;margin:10px 0 8px}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);border-radius:7px;transition:width .4s}
+.empty{color:var(--muted);padding:6px 2px}
+.tag{display:inline-block;background:var(--soft);border-radius:8px;padding:1px 9px;font-size:16px;margin-left:6px;vertical-align:2px}
+
+details.box{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:14px 0;padding:0 18px}
+details.box>summary{cursor:pointer;font-weight:700;padding:16px 0;list-style-position:outside;margin-left:22px}
+details.box[open]{padding-bottom:16px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.opt label{flex:1}
+.opt small,.hint{display:block;color:var(--muted);font-size:16.5px;line-height:1.5}
+.opt select{min-height:46px;padding:6px 10px;border-radius:10px;border:2px solid var(--line);background:var(--card);max-width:55%}
+.opt input[type=checkbox]{width:26px;height:26px;margin:4px 0 0;accent-color:var(--accent);flex:none}
+ol.steps{margin:6px 0 10px;padding-left:1.3em}
+ol.steps li{margin:0 0 8px}
+
+#player{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--line);
+  box-shadow:0 -8px 30px rgba(0,0,0,.14);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:none;z-index:20}
+#player.on{display:block}
+#player .in{max-width:760px;margin:0 auto}
+#pTitle{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 44px 2px 0}
+#pNote{color:var(--muted);font-size:16px;min-height:1.2em}
+#pSeek{width:100%;height:34px;accent-color:var(--accent);margin:2px 0}
+.pctl{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.pctl .btn{min-width:64px;justify-content:center}
+#pPlay{min-width:118px;font-size:21px;min-height:56px}
+#pTime{font-variant-numeric:tabular-nums;color:var(--muted);min-width:9.5em;text-align:center}
+#pRate{min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--card);padding:6px 8px}
+#pClose{position:absolute;right:10px;top:6px;border:0;background:transparent;min-width:44px;min-height:44px;font-size:26px;line-height:1;color:var(--muted)}
+
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);padding:20px;width:min(760px,94vw);max-height:92vh}
+dialog::backdrop{background:rgba(20,15,5,.55)}
+dialog h2{margin-top:0}
+dialog textarea{width:100%;height:52vh;border:2px solid var(--line);border-radius:12px;background:var(--paper);padding:14px;line-height:1.7;resize:vertical}
+dialog input[type=text]{width:100%;min-height:50px;border:2px solid var(--line);border-radius:12px;background:var(--paper);padding:8px 12px}
+footer{margin-top:40px;color:var(--muted);font-size:16.5px}
+@media (max-width:520px){body{font-size:18px} h1{font-size:30px} .opt.sel{flex-direction:column;gap:6px} .opt select{max-width:100%;width:100%}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Doc Reader</h1>
+  <p class="lede">Turn a PDF into a recording you can listen to anywhere. Everything happens on this device. Your files are never uploaded.</p>
+
+  <div id="drop">
+    <button class="btn primary" id="pick" type="button">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Choose a PDF</button>
+    <input id="file" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" multiple hidden>
+    <p>Or drop files here. Word files work too. It starts by itself.</p>
+  </div>
+
+  <div id="status" role="status" aria-live="polite"></div>
+
+  <h2>Your recordings</h2>
+  <div id="list"></div>
+
+  <details class="box" id="optBox">
+    <summary>Options</summary>
+    <div class="opt sel">
+      <label for="oVoice">Voice</label>
+      <select id="oVoice">
+        <option value="bf_emma">Emma (British)</option>
+        <option value="bf_isabella">Isabella (British)</option>
+        <option value="bm_george">George (British)</option>
+        <option value="bm_fable">Fable (British)</option>
+        <option value="af_heart">Heart (American)</option>
+        <option value="af_bella">Bella (American)</option>
+        <option value="am_michael">Michael (American)</option>
+      </select>
+    </div>
+    <div class="opt sel">
+      <label for="oSpeed">Reading speed<small>Built into the recording. You can also change speed while you listen.</small></label>
+      <select id="oSpeed">
+        <option value="0.9">Slower</option>
+        <option value="1">Normal</option>
+        <option value="1.15">A bit faster</option>
+        <option value="1.3">Faster</option>
+      </select>
+    </div>
+    <div class="opt">
+      <input type="checkbox" id="oRefs">
+      <label for="oRefs">Skip the reference list<small>Stops at the "References" heading at the end of an article.</small></label>
+    </div>
+    <div class="opt">
+      <input type="checkbox" id="oCites">
+      <label for="oCites">Skip citations<small>Leaves out things like (Smith &amp; Jones, 2020) so sentences flow.</small></label>
+    </div>
+    <div class="opt">
+      <input type="checkbox" id="oFast">
+      <label for="oFast">Faster mode (try it)<small id="fastHint">Uses the graphics chip to make recordings sooner. If it does not work on this device, it switches itself off.</small></label>
+    </div>
+    <p class="hint" style="margin-top:10px">Options apply to files you add from now on.</p>
+  </details>
+
+  <details class="box">
+    <summary>Listening in the car</summary>
+    <p><b>On your iPhone:</b></p>
+    <ol class="steps">
+      <li>Open this page in Safari on the phone. Tap Share, then <b>Add to Home Screen</b>, so it opens like an app and keeps your recordings.</li>
+      <li>Add a PDF from Files, email or OneDrive. Leave the screen on while it makes the recording.</li>
+      <li>Press <b>Play</b>. It keeps playing with the screen off and through the car like any other audio.</li>
+    </ol>
+    <p><b>From your laptop</b> (quicker for long documents):</p>
+    <ol class="steps">
+      <li>Make the recording here, then press <b>Save file</b>. You get an MP3.</li>
+      <li>Put the MP3 in OneDrive or iCloud Drive and open it in the Files app on the phone.</li>
+    </ol>
+  </details>
+
+  <footer>
+    <p id="foot">Recordings are kept in this browser on this device.</p>
+  </footer>
+</main>
+
+<div id="player" aria-label="Player">
+  <div class="in">
+    <button id="pClose" type="button" aria-label="Close player">&times;</button>
+    <div id="pTitle"></div>
+    <div id="pNote"></div>
+    <input id="pSeek" type="range" min="0" max="100" step="1" value="0" aria-label="Position">
+    <div class="pctl">
+      <button class="btn" id="pBack" type="button" aria-label="Back 15 seconds">&minus;15</button>
+      <button class="btn primary" id="pPlay" type="button">Play</button>
+      <button class="btn" id="pFwd" type="button" aria-label="Forward 30 seconds">+30</button>
+      <span id="pTime">0:00 / 0:00</span>
+      <select id="pRate" aria-label="Listening speed">
+        <option value="0.8">0.8&times;</option><option value="1">1&times;</option><option value="1.15">1.15&times;</option>
+        <option value="1.3">1.3&times;</option><option value="1.5">1.5&times;</option><option value="1.75">1.75&times;</option><option value="2">2&times;</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<dialog id="editDlg">
+  <h2>Check the text</h2>
+  <p class="hint">This is what will be read aloud. Delete anything you do not want to hear. Leave a blank line between paragraphs.</p>
+  <textarea id="editText" spellcheck="false"></textarea>
+  <div class="row" style="margin-top:14px">
+    <button class="btn primary" id="editSave" type="button">Save and make the recording</button>
+    <button class="btn" id="editCancel" type="button">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="nameDlg">
+  <h2>Rename</h2>
+  <input type="text" id="nameText" aria-label="Name">
+  <div class="row" style="margin-top:14px">
+    <button class="btn primary" id="nameSave" type="button">Save</button>
+    <button class="btn" id="nameCancel" type="button">Cancel</button>
+  </div>
+</dialog>
+
+<script type="module">
+/* Doc Reader: PDF or Word file -> MP3 recording, made entirely in the browser.
+   Layout of this file:
+     1. Start-up helper (lets the voice engine use several processor cores)
+     2. Settings and storage
+     3. Reading the document (PDF, Word, text) and cleaning it up for listening
+     4. The voice engine (runs in tts-worker.js)
+     5. The queue that makes recordings
+     6. The list on screen
+     7. The player                                                              */
+
+/* ---------- 1. start-up helper ---------- */
+const DEBUG = new URLSearchParams(location.search).has("debug");
+(async () => {
+  if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+  try {
+    await navigator.serviceWorker.register("sw.js");
+    await navigator.serviceWorker.ready;
+    // The first visit has to reload once so the helper can take effect.
+    if (!window.crossOriginIsolated && !sessionStorage.getItem("docreader:reloaded")) {
+      sessionStorage.setItem("docreader:reloaded", "1");
+      if (!navigator.serviceWorker.controller) await new Promise((res) => { navigator.serviceWorker.addEventListener("controllerchange", res, { once: true }); setTimeout(res, 3000); });
+      if (!busy()) location.reload();
+    }
+  } catch (e) { /* the page still works, only slower */ }
+})();
+const busy = () => typeof recs !== "undefined" && recs.size > 0 && [...recs.values()].some((r) => r.temp || r.status === "working" || r.status === "queued");
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* ---------- 2. settings and storage ---------- */
+const DEFAULTS = { voice: "bf_emma", speed: 1, skipRefs: true, skipCites: true, fast: false, playRate: 1 };
+const settings = Object.assign({}, DEFAULTS);
+try { Object.assign(settings, JSON.parse(localStorage.getItem("docreader:settings") || "{}")); } catch (e) {}
+const saveSettings = () => { try { localStorage.setItem("docreader:settings", JSON.stringify(settings)); } catch (e) {} };
+
+const DB = (() => {
+  let opening;
+  const open = () => opening || (opening = new Promise((res, rej) => {
+    const r = indexedDB.open("docreader", 1);
+    r.onupgradeneeded = () => {
+      r.result.createObjectStore("recs", { keyPath: "id" });
+      r.result.createObjectStore("parts", { keyPath: ["id", "i"] });
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  }));
+  const run = async (stores, mode, fn) => {
+    const d = await open();
+    return new Promise((res, rej) => {
+      const t = d.transaction(stores, mode); let out;
+      t.oncomplete = () => res(out && "result" in out ? out.result : undefined);
+      t.onerror = t.onabort = () => rej(t.error);
+      out = fn(t);
+    });
+  };
+  const span = (id, upto) => IDBKeyRange.bound([id, 0], [id, upto == null ? Infinity : upto - 1]);
+  return {
+    allRecs: () => run("recs", "readonly", (t) => t.objectStore("recs").getAll()),
+    putRec: (r) => run("recs", "readwrite", (t) => { t.objectStore("recs").put(r); }),
+    putPart: (p, r) => run(["recs", "parts"], "readwrite", (t) => { t.objectStore("parts").put(p); t.objectStore("recs").put(r); }),
+    parts: (id, upto) => run("parts", "readonly", (t) => t.objectStore("parts").getAll(span(id, upto))),
+    delParts: (id) => run("parts", "readwrite", (t) => { t.objectStore("parts").delete(span(id)); }),
+    delRec: (id) => run(["recs", "parts"], "readwrite", (t) => { t.objectStore("recs").delete(id); t.objectStore("parts").delete(span(id)); }),
+  };
+})();
+
+/* ---------- 3. reading the document ---------- */
+let pdfjs = null;
+async function loadPdfjs() {
+  if (!pdfjs) {
+    pdfjs = await import("./vendor/pdf.min.mjs");
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdf.worker.min.mjs", location.href).href;
+  }
+  return pdfjs;
+}
+
+// One page of a PDF -> blocks of text (roughly paragraphs) with their position.
+function pageBlocks(items, vp, o) {
+  const lines = []; let cur = null;
+  const flush = () => { if (cur) { lines.push(cur); cur = null; } };
+  for (const it of items) {
+    if (typeof it.str !== "string") continue;
+    if (it.str.trim() === "") { // a space between words
+      if (cur && it.str && !cur.text.endsWith(" ")) cur.text += " ";
+      continue;
+    }
+    const m = pdfjs.Util.transform(vp.transform, it.transform);
+    if (Math.abs(m[1]) > Math.abs(m[0]) * 0.5) continue; // sideways text (watermarks)
+    const size = Math.hypot(m[2], m[3]) || it.height || 10;
+    const x = m[4], y = m[5], x1 = x + (it.width || 0);
+    // Same line when the baseline is (nearly) the same. The file's own
+    // end-of-line marks are not reliable: they also appear where the font changes.
+    if (cur && Math.abs(y - cur.y) < Math.max(cur.size, size) * 0.55 && x > cur.x0 - cur.size) {
+      const small = size < cur.size * 0.86;
+      // Small raised numbers after a word are footnote or citation marks.
+      if (o.skipCites && small && y < cur.y - cur.size * 0.15 && /^[\d,\-–\s]+$/.test(it.str) && /(?:[A-Za-z]{3}|[.,;:)"”’])$/.test(cur.text)) continue;
+      const lowered = small && y > cur.y + cur.size * 0.08 && /^[A-Za-z]/.test(it.str); // subscript, as in M(age)
+      if ((lowered || x - cur.x1 > cur.size * 0.2) && !cur.text.endsWith(" ") && !it.str.startsWith(" ")) cur.text += " ";
+      cur.text += it.str; cur.x1 = Math.max(cur.x1, x1); cur.x0 = Math.min(cur.x0, x);
+      if (size > cur.size && it.str.trim().length > 2) cur.size = size;
+      if (it.str.length > cur.fontLen) { cur.font = it.fontName; cur.fontLen = it.str.length; }
+    } else {
+      flush();
+      cur = { text: it.str, x0: x, x1, y, size, font: it.fontName, fontLen: it.str.length };
+    }
+  }
+  flush();
+
+  // Usual distance between lines on this page (handles double-spaced manuscripts).
+  const steps = [];
+  for (let i = 1; i < lines.length; i++) {
+    const dy = lines[i].y - lines[i - 1].y, s = lines[i].size;
+    if (dy > s * 0.8 && dy < s * 3.2) steps.push(dy / s);
+  }
+  steps.sort((a, b) => a - b);
+  const usual = steps.length > 4 ? steps[Math.floor(steps.length / 2)] : 1.3;
+
+  const blocks = []; let b = null;
+  for (const L of lines) {
+    const t = L.text.trim();
+    if (!t) continue;
+    let same = false;
+    if (b) {
+      const dy = L.y - b.lastY, s = Math.max(b.size, L.size);
+      const near = dy > -0.3 * s && dy < s * usual * 1.35;
+      const diff = Math.abs(L.size - b.size) / b.size;
+      // A short line in its own typeface, followed by ordinary text, is a heading.
+      const heading = L.font !== b.font && (diff > 0.03 || (b.lines === 1 && b.text.length < 90 && !/[.!?,;:]$/.test(b.text)));
+      const sameSize = diff < 0.13 && !heading;
+      const overlap = L.x0 < b.x1 && L.x1 > b.x0;
+      const indent = L.x0 - b.x0 > 0.9 * b.size && L.x0 - b.x0 < 5 * b.size && /[.!?:"”)]$/.test(b.text);
+      same = near && sameSize && overlap && !indent;
+    }
+    if (same) {
+      if (/[A-Za-z][-\u2010\u00ad]$/.test(b.text) && /^[a-z]/.test(t)) b.text = b.text.slice(0, -1) + t; // word split across lines
+      else b.text += " " + t;
+      b.lastY = L.y; b.y1 = L.y + L.size * 0.25; b.x0 = Math.min(b.x0, L.x0); b.x1 = Math.max(b.x1, L.x1); b.lines++;
+    } else {
+      b = { text: t, y0: L.y - L.size, y1: L.y + L.size * 0.25, lastY: L.y, x0: L.x0, x1: L.x1, size: L.size, font: L.font, lines: 1, h: vp.height };
+      blocks.push(b);
+    }
+  }
+  return blocks;
+}
+
+async function pdfParagraphs(buf, o, onPage) {
+  const lib = await loadPdfjs();
+  const task = lib.getDocument({ data: new Uint8Array(buf) });
+  const doc = await task.promise;
+  const pages = [];
+  for (let n = 1; n <= doc.numPages; n++) {
+    const page = await doc.getPage(n);
+    const vp = page.getViewport({ scale: 1 });
+    const tc = await page.getTextContent();
+    pages.push(pageBlocks(tc.items, vp, o));
+    if (onPage) onPage(n, doc.numPages);
+    page.cleanup();
+  }
+  const numPages = doc.numPages;
+  task.destroy().catch(() => {});
+
+  // Running headers and footers: short text in the top or bottom margin that
+  // repeats across pages once digits are ignored ("Page 3" matches "Page 4").
+  const key = (t) => t.toLowerCase().replace(/\d+/g, "#").trim();
+  const inMargin = (b) => b.y1 < b.h * 0.10 || b.y0 > b.h * 0.88;
+  const count = new Map();
+  for (const blocks of pages) {
+    const seen = new Set();
+    for (const b of blocks) if (inMargin(b) && b.text.length < 150) seen.add(key(b.text));
+    for (const k of seen) count.set(k, (count.get(k) || 0) + 1);
+  }
+  const need = Math.max(2, Math.floor(pages.length / 3));
+  const paras = [];
+  for (const blocks of pages) {
+    for (const b of blocks) {
+      if (inMargin(b) && ((count.get(key(b.text)) || 0) >= need || /^[\divxlc\s\-–|of page]+$/i.test(b.text))) continue;
+      paras.push(b.text.replace(/\s+/g, " ").trim());
+    }
+  }
+  return { paras: mergeSplit(paras), pages: numPages };
+}
+
+// A paragraph cut in two by a page or column break: join the halves.
+function mergeSplit(paras) {
+  const out = [];
+  for (const t of paras) {
+    const prev = out[out.length - 1];
+    if (prev && /^[a-z]/.test(t) && !/[.!?:;"”)]$/.test(prev)) {
+      out[out.length - 1] = /[A-Za-z][-\u2010\u00ad]$/.test(prev) ? prev.slice(0, -1) + t : prev + " " + t;
+    } else out.push(t);
+  }
+  return out;
+}
+
+// Word files are zip folders. Read word/document.xml out of the zip.
+async function docxParagraphs(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf);
+  let e = u8.length - 22;
+  while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error("not a Word file");
+  let p = dv.getUint32(e + 16, true); const n = dv.getUint16(e + 10, true);
+  let xml = null;
+  for (let i = 0; i < n && dv.getUint32(p, true) === 0x02014b50; i++) {
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
+    if (name === "word/document.xml") {
+      const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+      const data = u8.subarray(start, start + csize);
+      if (method === 0) xml = new TextDecoder().decode(data);
+      else xml = await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+      break;
+    }
+    p += 46 + nl + xl + cl;
+  }
+  if (xml == null) throw new Error("not a Word file");
+  const dom = new DOMParser().parseFromString(xml, "application/xml");
+  const paras = [];
+  for (const para of dom.getElementsByTagName("w:p")) {
+    let t = "";
+    const walk = (node) => {
+      for (const c of node.childNodes) {
+        if (c.nodeName === "w:t") t += c.textContent;
+        else if (c.nodeName === "w:tab" || c.nodeName === "w:br") t += " ";
+        else if (c.nodeName !== "w:del" && c.nodeName !== "w:pPr" && c.nodeName !== "w:rPr") walk(c);
+      }
+    };
+    walk(para);
+    t = t.replace(/\s+/g, " ").trim();
+    if (t) paras.push(t);
+  }
+  return { paras };
+}
+
+const GREEK = { "α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta", "Δ": "delta", "ε": "epsilon", "ζ": "zeta", "η": "eta", "θ": "theta", "κ": "kappa", "λ": "lambda", "μ": "mu", "ν": "nu", "π": "pi", "ρ": "rho", "σ": "sigma", "Σ": "sigma", "τ": "tau", "φ": "phi", "Φ": "phi", "χ": "chi", "ψ": "psi", "Ψ": "psi", "ω": "omega", "Ω": "omega" };
+
+// Citations in brackets: (Smith, 2020), (see Lee et al., 2019; Cho & Park, 2021, p. 4), and the "(2020)" after a name.
+function stripCites(t) {
+  const YEAR = /\b(?:1[6-9]|20)\d{2}[a-z]?\b|\bn\.d\.|\bin press\b/;
+  return t.replace(/\s*\(([^()]{0,400})\)/g, (m, inner) => {
+    if (!YEAR.test(inner)) return m;
+    if (/^\s*(?:1[6-9]|20)\d{2}[a-z]?(?:\s*[,;/]\s*(?:1[6-9]|20)\d{2}[a-z]?)*\s*$/.test(inner)) return "";
+    if (/[=<>]/.test(inner)) return m; // statistics, keep
+    if (/\p{Lu}[\p{L}'’\-]+(?:,| et al\.?| and | & )/u.test(inner)) return "";
+    return m;
+  });
+}
+
+// Symbols and abbreviations the voice would stumble on.
+function speakable(t) {
+  t = t.replace(/\bet al\./g, "et al").replace(/\be\.g\.,?/g, "for example,").replace(/\bi\.e\.,?/g, "that is,")
+    .replace(/\bcf\.\s/g, "compare ").replace(/\bvs\.?(?=\s)/g, "versus").replace(/\bpp\.\s*(?=\d)/g, "pages ")
+    .replace(/\bp\.\s*(?=\d)/g, "page ").replace(/\bFigs?\.\s*(?=\d)/g, "Figure ").replace(/\bEqs?\.\s*(?=\d)/g, "Equation ");
+  t = t.replace(/([A-Za-zα-ωΑ-Ω])\s?²/g, "$1 squared").replace(/([ηχωσ])\s?2(?![\d.])/g, "$1 squared").replace(/(?<![A-Za-z])([Rr])2(?![\d.A-Za-z])/g, "$1 squared");
+  t = t.replace(/[α-ωΑ-Ω]/g, (c) => (GREEK[c] ? " " + GREEK[c] + " " : c));
+  t = t.replace(/≤/g, " less than or equal to ").replace(/≥/g, " greater than or equal to ").replace(/</g, " less than ")
+    .replace(/>/g, " greater than ").replace(/≠/g, " not equal to ").replace(/[≈≅]/g, " approximately ")
+    .replace(/±/g, " plus or minus ").replace(/×/g, " times ").replace(/=/g, " equals ")
+    .replace(/−(?=\s?[\d.])/g, " minus ").replace(/&/g, " and ").replace(/→/g, " to ");
+  return t;
+}
+
+function clean(t, o) {
+  t = t.replace(/­/g, "").replace(/ﬁ/g, "fi").replace(/ﬂ/g, "fl").replace(/ﬀ/g, "ff").replace(/ﬃ/g, "ffi").replace(/ﬄ/g, "ffl");
+  t = t.replace(/(?:https?:\/\/|www\.)\S+|\bdoi:\s*\S+/gi, (m) => " link" + ((m.match(/[.,;:!?)\]]+$/) || [""])[0]) + " ");
+  t = t.replace(/[\w.+-]+@[\w-]+\.[\w.-]*\w/g, " email address ");
+  t = t.replace(/\[\d+(?:\s*[,\-–]\s*\d+)*\]/g, ""); // numbered citation marks like [12] or [3-5]
+  if (o.skipCites) t = stripCites(t);
+  t = t.replace(/[•▪■●◦‣]/g, " ");
+  t = speakable(t);
+  t = t.replace(/\s+/g, " ").trim().replace(/\s+([,;:!?]|\.(?!\d))/g, "$1").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").replace(/\(\)/g, "").replace(/([,;:])(?:\s*\1)+/g, "$1");
+  return t.trim();
+}
+
+// Keep each spoken piece short, so progress is saved often and Stop is quick.
+function splitLong(t, limit) {
+  if (t.length <= limit) return [t];
+  const parts = []; let cur = "";
+  for (const s of t.split(/(?<=[.!?])\s+/)) {
+    if (cur && cur.length + s.length + 1 > limit) { parts.push(cur); cur = s; }
+    else cur = (cur + " " + s).trim();
+  }
+  if (cur) parts.push(cur);
+  return parts;
+}
+
+// Paragraphs -> list of [text, pause after it in seconds].
+function buildPieces(paras, o) {
+  let skipped = false;
+  if (o.skipRefs) {
+    const from = Math.floor(paras.length * 0.35);
+    const at = paras.findIndex((p, i) => i >= from && /^(?:\d+\.?\s*)?(?:references|reference list|references and notes|bibliography|works cited|literature cited)\.?$/i.test(p.trim()));
+    if (at > 0) { paras = paras.slice(0, at); skipped = true; }
+  }
+  const out = [];
+  for (const raw of paras) {
+    let p = clean(raw, o);
+    if (p.replace(/[^A-Za-z]/g, "").length < 2) continue; // nothing to pronounce
+    const heading = p.length < 120 && !/[.!?:;"”)]$/.test(p);
+    if (!/[.!?:;"”)]$/.test(p)) p += ".";
+    if (heading && out.length) out[out.length - 1][1] = 0.8;
+    const parts = splitLong(p, 450);
+    parts.forEach((s, k) => out.push([s, k < parts.length - 1 ? 0.05 : heading ? 0.6 : 0.45]));
+  }
+  return { pieces: out, skipped };
+}
+
+// Text typed or edited by hand: blank lines separate paragraphs.
+function piecesFromText(text) {
+  const out = [];
+  for (const para of text.replace(/\r/g, "").split(/\n\s*\n/)) {
+    let p = para.replace(/\s+/g, " ").trim();
+    if (p.replace(/[^A-Za-z]/g, "").length < 2) continue;
+    if (!/[.!?:;"”)]$/.test(p)) p += ".";
+    const parts = splitLong(p, 450);
+    parts.forEach((s, k) => out.push([s, k < parts.length - 1 ? 0.05 : 0.45]));
+  }
+  return out;
+}
+function textFromPieces(pieces) {
+  let s = "";
+  for (const [t, gap] of pieces) s += t + (gap > 0.1 ? "\n\n" : " ");
+  return s.trim();
+}
+
+/* ---------- 4. the voice engine ---------- */
+const UA = navigator.userAgent;
+const IS_IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const IS_PHONE = IS_IOS || /Android/.test(UA);
+const CORES = navigator.hardwareConcurrency || 4;
+const HAS_GPU = "gpu" in navigator;
+
+function engineConfig() {
+  const iso = window.crossOriginIsolated === true;
+  if (IS_PHONE) {
+    // Phones: the small copy of the voice (about 90 MB). Faster mode uses more cores.
+    return { dtype: "q8", device: "wasm", threads: !iso ? 1 : settings.fast ? Math.min(4, CORES) : IS_IOS ? 1 : Math.min(2, CORES), fast: settings.fast && iso };
+  }
+  const threads = iso ? (CORES <= 4 ? CORES : Math.min(8, CORES - 2)) : 1;
+  if (settings.fast && HAS_GPU) return { dtype: "fp32", device: "webgpu", threads, fast: true };
+  return { dtype: "fp32", device: "wasm", threads, fast: false };
+}
+
+const engine = {
+  w: null, cfg: null, ready: null, waiting: new Map(), seq: 0, onDownload: null,
+  start(cfg) {
+    this.stop();
+    this.cfg = cfg;
+    const w = this.w = new Worker("tts-worker.js", { type: "module" });
+    this.ready = new Promise((res, rej) => { this._ok = res; this._no = rej; });
+    this.ready.catch(() => {});
+    w.onmessage = (e) => {
+      const m = e.data;
+      if (m.type === "download") { if (this.onDownload) this.onDownload(m); }
+      else if (m.type === "ready") this._ok(m.info);
+      else if (m.type === "piece") { const p = this.waiting.get(m.id); if (p) { this.waiting.delete(m.id); p.res(m); } }
+      else if (m.type === "error") {
+        const err = new Error(m.message);
+        if (m.where === "init") this._no(err);
+        else { const p = this.waiting.get(m.id); if (p) { this.waiting.delete(m.id); p.rej(err); } }
+      }
+    };
+    w.onerror = (e) => { if (this.w === w) this.fail(new Error(e.message || "The voice engine stopped.")); };
+    w.postMessage({ type: "init", wasmPaths: new URL("./vendor/", location.href).href, dtype: cfg.dtype, device: cfg.device, threads: cfg.threads });
+    return this.ready;
+  },
+  fail(err) {
+    if (this._no) this._no(err);
+    for (const p of this.waiting.values()) p.rej(err);
+    this.waiting.clear();
+    this.stop();
+  },
+  stop() { if (this.w) { this.w.onmessage = this.w.onerror = null; this.w.terminate(); } this.w = null; this.cfg = null; this.ready = null; },
+  speak(text, o) {
+    const id = ++this.seq;
+    return new Promise((res, rej) => {
+      this.waiting.set(id, { res, rej });
+      this.w.postMessage({ type: "speak", id, text, voice: o.voice, speed: o.speed, gap: o.gap, kbps: 64 });
+    });
+  },
+};
+
+async function ensureEngine() {
+  const want = engineConfig();
+  if (engine.w && engine.cfg && engine.cfg.dtype === want.dtype && engine.cfg.device === want.device && engine.cfg.threads === want.threads) return engine.ready;
+  engine.onDownload = (m) => {
+    const mb = m.total > 2e7 ? Math.round(m.total / 1e6) : 0;
+    const pct = m.total ? Math.floor((m.loaded / m.total) * 100) : 0;
+    setStatus("Getting the voice ready" + (mb ? ": " + pct + "% of " + mb + " MB" : "…") + ". This download happens once.");
+  };
+  setStatus("Getting the voice ready…");
+  try {
+    return await engine.start(want);
+  } catch (e) {
+    if (!want.fast) throw e;
+    fastOff();
+    return await engine.start(engineConfig());
+  }
+}
+function fastOff() {
+  settings.fast = false; saveSettings(); $("#oFast").checked = false;
+  flash("Faster mode did not work on this device, so it is switched off. Recordings still work.");
+}
+
+/* ---------- 5. the queue ---------- */
+const recs = new Map();       // id -> recording
+const live = new Map();       // id -> { stop, waiters[] } (not saved)
+let current = null, pumping = false, rate = null;
+
+const state = (id) => { let s = live.get(id); if (!s) live.set(id, (s = { stop: false, waiters: [] })); return s; };
+const saved = (r) => { const c = Object.assign({}, r); delete c.temp; return c; };
+const EST_CHARS_PER_SEC = 16.5;
+
+async function addFile(file) {
+  const id = "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const title = file.name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ").replace(/\s+/g, " ").trim() || "Recording";
+  const rec = { id, title, created: Date.now(), status: "reading", temp: true, done: 0, seconds: 0, bytes: 0, note: "" };
+  recs.set(id, rec); render();
+  try {
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    const buf = await file.arrayBuffer();
+    const o = { skipRefs: settings.skipRefs, skipCites: settings.skipCites };
+    let got;
+    if (ext === "pdf" || file.type === "application/pdf") {
+      got = await pdfParagraphs(buf, o, (n, of) => { rec.note = "Reading page " + n + " of " + of; patch(rec); });
+    } else if (ext === "docx") got = await docxParagraphs(buf);
+    else if (ext === "txt" || file.type === "text/plain") got = { paras: new TextDecoder().decode(buf).replace(/\r/g, "").split(/\n\s*\n/).map((s) => s.replace(/\s+/g, " ").trim()).filter(Boolean) };
+    else if (ext === "doc") throw new Error("OLDWORD");
+    else throw new Error("KIND");
+    const built = buildPieces(got.paras, o);
+    if (!built.pieces.length) throw new Error(ext === "pdf" ? "SCAN" : "EMPTY");
+    rec.pieces = built.pieces;
+    rec.chars = built.pieces.reduce((n, p) => n + p[0].length, 0);
+    rec.voice = settings.voice; rec.speed = settings.speed;
+    rec.note = built.skipped ? "Reference list left out." : "";
+    rec.status = "queued"; delete rec.temp;
+    await DB.putRec(saved(rec));
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+    render(); pump();
+  } catch (e) {
+    rec.status = "error"; rec.note = "";
+    const m = String((e && e.message) || e);
+    rec.error = m === "SCAN" ? "This PDF is a scan (pictures of pages), so there is no text in it to read."
+      : m === "EMPTY" ? "I could not find any text in this file."
+      : m === "OLDWORD" ? "Older .doc files do not work. Open it in Word, save it as .docx, and add that."
+      : m === "KIND" ? "This kind of file does not work here. Use a PDF or a Word (.docx) file."
+      : /password/i.test(m) ? "This PDF is locked with a password, so I cannot read it."
+      : "I could not read this file. It may be damaged.";
+    if (DEBUG) console.error(e);
+    render();
+  }
+}
+
+async function pump() {
+  if (pumping) return;
+  pumping = true;
+  try {
+    for (;;) {
+      const next = [...recs.values()].filter((r) => r.status === "queued").sort((a, b) => a.created - b.created)[0];
+      if (!next) break;
+      await convert(next);
+    }
+  } finally {
+    pumping = false; rate = null;
+    letSleep(); setStatus(""); document.title = "Doc Reader"; render();
+  }
+}
+
+async function convert(rec) {
+  const st = state(rec.id);
+  current = rec; rec.status = "working"; rec.error = ""; st.stop = false;
+  render(); stayAwake();
+  let wall = 0, chars = 0, audioSec = 0;
+  try {
+    await ensureEngine();
+    setStatus("");
+    while (rec.done < rec.pieces.length && !st.stop) {
+      const i = rec.done, piece = rec.pieces[i];
+      const t0 = performance.now();
+      let r = await engine.speak(piece[0], { voice: rec.voice, speed: rec.speed, gap: piece[1] });
+      if (!r.ok && engine.cfg && engine.cfg.fast && r.seconds > piece[1] + 0.2) {
+        // Faster mode produced bad sound on this device. Switch it off and redo this piece.
+        fastOff(); await ensureEngine(); setStatus("");
+        r = await engine.speak(piece[0], { voice: rec.voice, speed: rec.speed, gap: piece[1] });
+      }
+      if (st.gone) return;
+      wall += (performance.now() - t0) / 1000; chars += piece[0].length; audioSec += r.seconds;
+      rec.done = i + 1; rec.seconds += r.seconds; rec.bytes += r.mp3.byteLength;
+      await DB.putPart({ id: rec.id, i, mp3: r.mp3, seconds: r.seconds }, saved(rec));
+      const left = rec.pieces.slice(rec.done).reduce((n, p) => n + p[0].length, 0);
+      rate = { x: audioSec / wall, leftSec: (wall / chars) * left };
+      patch(rec);
+      document.title = Math.floor((rec.done / rec.pieces.length) * 100) + "% · Doc Reader";
+      if (playing && playing.rec === rec && playing.waiting) extendPlayback();
+    }
+    if (rec.done >= rec.pieces.length) { rec.status = "done"; rec.finished = Date.now(); rec.chars = 0; rec.pieces = null; }
+    else rec.status = "paused";
+  } catch (e) {
+    if (DEBUG) console.error(e);
+    engine.stop();
+    rec.status = "error";
+    rec.error = /memory|allocat/i.test(String(e && e.message)) ? "This device ran out of memory. Close other tabs and press Try again."
+      : navigator.onLine === false ? "The voice has to download once, and there is no internet right now. Press Try again when you are online."
+      : "Something stopped the voice. Press Try again. It carries on from where it got to.";
+    setStatus("");
+  } finally {
+    current = null; st.stop = false;
+    if (!st.gone) { try { await DB.putRec(saved(rec)); } catch (e) {} }
+    for (const w of st.waiters.splice(0)) w();
+    render();
+  }
+}
+
+function stopRec(rec) {
+  if (current !== rec) { if (rec.status === "queued") rec.status = "paused"; return Promise.resolve(); }
+  const st = state(rec.id); st.stop = true; rec.stopping = true; patch(rec);
+  return new Promise((res) => st.waiters.push(() => { delete rec.stopping; res(); }));
+}
+
+let wake = null, lockRelease = null;
+async function stayAwake() {
+  try { if ("wakeLock" in navigator && !wake) { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; }); } } catch (e) {}
+  // Holding a lock asks the browser not to put this tab to sleep while it works.
+  if (navigator.locks && !lockRelease) navigator.locks.request("docreader-working", () => new Promise((res) => { lockRelease = res; })).catch(() => {});
+}
+function letSleep() {
+  if (wake) { wake.release().catch(() => {}); wake = null; }
+  if (lockRelease) { lockRelease(); lockRelease = null; }
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && pumping) stayAwake(); });
+window.addEventListener("beforeunload", (e) => { if (pumping) { e.preventDefault(); e.returnValue = ""; } });
+
+/* ---------- 6. the list on screen ---------- */
+const mins = (sec) => { const m = Math.round(sec / 60); return m < 1 ? "under a minute" : m === 1 ? "1 minute" : m < 90 ? m + " minutes" : (Math.round(m / 6) / 10) + " hours"; };
+const clock = (sec) => { sec = Math.max(0, Math.floor(sec)); const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0"); };
+const mb = (b) => (b < 1e5 ? "under 0.1" : b / 1e6 < 10 ? (b / 1e6).toFixed(1) : Math.round(b / 1e6)) + " MB";
+const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+const estSec = (rec) => (rec.pieces ? rec.pieces.reduce((n, p) => n + p[0].length, 0) / EST_CHARS_PER_SEC / (rec.speed || 1) : rec.seconds);
+const VOICES = { bf_emma: "Emma", bf_isabella: "Isabella", bm_george: "George", bm_fable: "Fable", af_heart: "Heart", af_bella: "Bella", am_michael: "Michael" };
+const CAN_SHARE = !!(navigator.canShare && navigator.share) && IS_PHONE;
+
+function progressText(rec) {
+  const pct = Math.floor((rec.done / rec.pieces.length) * 100);
+  if (rec.stopping) return "Stopping after this sentence…";
+  let s = "Making the recording: " + pct + "%";
+  if (rate && current === rec && rec.done > 0) {
+    s += rate.leftSec < 50 ? " · under a minute left" : " · about " + mins(rate.leftSec) + " left";
+    s += " · " + rate.x.toFixed(1) + "× listening speed";
+  }
+  return s;
+}
+
+function cardHTML(rec) {
+  const id = rec.id, b = (act, label, cls) => '<button type="button" class="btn ' + (cls || "") + '" data-act="' + act + '" data-id="' + id + '">' + label + "</button>";
+  let h = '<div class="card" id="c-' + id + '"><h3>' + esc(rec.title) + "</h3>";
+  if (rec.status === "reading") {
+    h += '<p class="meta" id="m-' + id + '">' + esc(rec.note || "Reading the file…") + "</p>";
+  } else if (rec.status === "error") {
+    h += '<p class="err">' + esc(rec.error) + '</p><div class="row">' + (rec.pieces ? b("go", "Try again", "primary") : "") + (rec.done > 0 ? b("play", "Listen so far") : "") + b("del", "Remove", "quiet danger") + "</div>";
+  } else if (rec.status === "done") {
+    h += '<p class="meta">' + cap(mins(rec.seconds)) + " · " + mb(rec.bytes) + " · " + (VOICES[rec.voice] || "") + (rec.pos > 5 && rec.pos < rec.seconds - 5 ? ' <span class="tag">at ' + clock(rec.pos) + "</span>" : "") + "</p>";
+    h += '<div class="row">' + b("play", '<svg class="i" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>Play', "primary") + b("save", "Save file") + (CAN_SHARE ? b("share", "Share") : "") + b("name", "Rename", "quiet") + b("del", "Delete", "quiet danger") + "</div>";
+  } else {
+    const pct = rec.pieces.length ? (rec.done / rec.pieces.length) * 100 : 0;
+    const about = "About " + mins(estSec(rec)) + " of listening. " + esc(rec.note || "");
+    if (rec.status === "working") {
+      h += '<p class="meta">' + about + '</p><div class="bar"><i id="p-' + id + '" style="width:' + pct + '%"></i></div><p class="meta" id="m-' + id + '">' + esc(progressText(rec)) + "</p>";
+      h += '<div class="row">' + b("stop", "Stop") + '<span id="l-' + id + '">' + (rec.seconds > 20 ? b("play", "Listen so far") : "") + "</span>" + b("edit", "Check the text", "quiet") + "</div>";
+    } else if (rec.status === "queued") {
+      h += '<p class="meta">' + about + " Waiting its turn.</p>";
+      h += '<div class="row">' + b("edit", "Check the text") + b("del", "Remove", "quiet danger") + "</div>";
+    } else { // paused
+      h += '<p class="meta">' + about + '</p><div class="bar"><i style="width:' + pct + '%"></i></div><p class="meta">Stopped at ' + Math.floor(pct) + "%.</p>";
+      h += '<div class="row">' + b("go", "Continue", "primary") + (rec.seconds > 20 ? b("play", "Listen so far") : "") + b("edit", "Check the text", "quiet") + b("del", "Delete", "quiet danger") + "</div>";
+    }
+  }
+  return h + "</div>";
+}
+
+function render() {
+  const all = [...recs.values()].sort((a, b) => b.created - a.created);
+  $("#list").innerHTML = all.length ? all.map(cardHTML).join("") : '<p class="empty">Nothing here yet. Add a PDF above and it will start by itself.</p>';
+  const done = all.filter((r) => r.bytes > 0), total = done.reduce((n, r) => n + r.bytes, 0);
+  $("#foot").textContent = "Recordings are kept in this browser on this device" + (total ? " (" + mb(total) + " so far)." : ".") + " Nothing is uploaded.";
+}
+// Update one card's progress without redrawing the whole list.
+function patch(rec) {
+  const m = $("#m-" + rec.id), p = $("#p-" + rec.id), l = $("#l-" + rec.id);
+  if (!m) return render();
+  if (rec.status === "reading") { m.textContent = rec.note || "Reading the file…"; return; }
+  m.textContent = progressText(rec);
+  if (p) p.style.width = (rec.done / rec.pieces.length) * 100 + "%";
+  if (l && !l.firstChild && rec.seconds > 20) l.innerHTML = '<button type="button" class="btn" data-act="play" data-id="' + rec.id + '">Listen so far</button>';
+}
+
+let flashTimer = 0;
+function setStatus(t, bad) { const s = $("#status"); s.textContent = t; s.className = (t ? "on" : "") + (bad ? " bad" : ""); }
+function flash(t) { setStatus(t, true); clearTimeout(flashTimer); flashTimer = setTimeout(() => { if ($("#status").textContent === t) setStatus(""); }, 9000); }
+
+$("#list").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-act]"); if (!btn) return;
+  const rec = recs.get(btn.dataset.id); if (!rec) return;
+  const act = btn.dataset.act;
+  if (act === "play") { unlockAudio(); play(rec); }
+  else if (act === "stop") stopRec(rec);
+  else if (act === "go") { rec.status = "queued"; rec.error = ""; render(); pump(); }
+  else if (act === "save") saveFile(rec, false);
+  else if (act === "share") saveFile(rec, true);
+  else if (act === "name") openName(rec);
+  else if (act === "edit") openEdit(rec);
+  else if (act === "del") {
+    if (!rec.temp && rec.status !== "error" && !confirm('Delete "' + rec.title + '"?')) return;
+    if (playing && playing.rec === rec) closePlayer();
+    state(rec.id).gone = true;
+    if (current === rec) stopRec(rec);
+    recs.delete(rec.id);
+    if (!rec.temp) await DB.delRec(rec.id);
+    render();
+  }
+});
+
+// Small tag at the front of the MP3 so players show the title.
+function id3(title) {
+  const frame = (id, text) => {
+    const body = new Uint8Array(3 + text.length * 2); body[0] = 1; body[1] = 0xff; body[2] = 0xfe; // UTF-16 with byte-order mark
+    for (let i = 0; i < text.length; i++) { const c = text.charCodeAt(i); body[3 + i * 2] = c & 255; body[4 + i * 2] = c >> 8; }
+    const f = new Uint8Array(10 + body.length);
+    for (let i = 0; i < 4; i++) f[i] = id.charCodeAt(i);
+    new DataView(f.buffer).setUint32(4, body.length);
+    f.set(body, 10); return f;
+  };
+  const frames = [frame("TIT2", title), frame("TALB", "Doc Reader"), frame("TPE1", "Doc Reader"), frame("TCON", "Audiobook")];
+  const size = frames.reduce((n, f) => n + f.length, 0);
+  const head = new Uint8Array(10); head.set([0x49, 0x44, 0x33, 3, 0, 0, (size >> 21) & 127, (size >> 14) & 127, (size >> 7) & 127, size & 127]);
+  return new Blob([head, ...frames]);
+}
+async function saveFile(rec, share) {
+  const parts = await DB.parts(rec.id, rec.done);
+  const name = (rec.title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 90) || "Recording") + ".mp3";
+  const blob = new Blob([id3(rec.title), ...parts.map((p) => p.mp3)], { type: "audio/mpeg" });
+  if (share) {
+    const file = new File([blob], name, { type: "audio/mpeg" });
+    try { if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: rec.title }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+
+let editing = null, naming = null;
+async function openEdit(rec) {
+  const was = rec.status;
+  if (current === rec) await stopRec(rec);
+  editing = { rec, was };
+  $("#editText").value = textFromPieces(rec.pieces);
+  $("#editDlg").showModal();
+  $("#editText").setSelectionRange(0, 0); $("#editText").scrollTop = 0;
+}
+$("#editSave").onclick = async () => {
+  const { rec } = editing;
+  const pieces = piecesFromText($("#editText").value);
+  if (!pieces.length) { alert("There is no text left to read."); return; }
+  if (playing && playing.rec === rec) closePlayer();
+  rec.pieces = pieces; rec.done = 0; rec.seconds = 0; rec.bytes = 0; rec.pos = 0; rec.status = "queued"; rec.note = "";
+  await DB.delParts(rec.id); await DB.putRec(saved(rec));
+  editing = null; $("#editDlg").close(); render(); pump();
+};
+$("#editCancel").onclick = () => $("#editDlg").close();
+$("#editDlg").addEventListener("close", () => {
+  if (!editing) return;
+  const { rec, was } = editing; editing = null;
+  if (was === "working" || was === "queued") { rec.status = "queued"; render(); pump(); }
+});
+function openName(rec) { naming = rec; $("#nameText").value = rec.title; $("#nameDlg").showModal(); $("#nameText").select(); }
+$("#nameSave").onclick = async () => {
+  const t = $("#nameText").value.replace(/\s+/g, " ").trim();
+  if (t && naming) { naming.title = t; await DB.putRec(saved(naming)); if (playing && playing.rec === naming) $("#pTitle").textContent = t; }
+  $("#nameDlg").close(); render();
+};
+$("#nameText").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#nameSave").click(); });
+$("#nameCancel").onclick = () => $("#nameDlg").close();
+
+// Adding files
+$("#pick").onclick = () => $("#file").click();
+$("#file").onchange = (e) => { for (const f of e.target.files) addFile(f); e.target.value = ""; };
+const drop = $("#drop");
+window.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+window.addEventListener("dragleave", (e) => { if (!e.relatedTarget) drop.classList.remove("over"); });
+window.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); for (const f of e.dataTransfer.files) addFile(f); });
+
+// Options
+$("#oVoice").value = settings.voice; $("#oSpeed").value = String(settings.speed);
+$("#oRefs").checked = settings.skipRefs; $("#oCites").checked = settings.skipCites; $("#oFast").checked = settings.fast;
+$("#oVoice").onchange = (e) => { settings.voice = e.target.value; saveSettings(); };
+$("#oSpeed").onchange = (e) => { settings.speed = parseFloat(e.target.value) || 1; saveSettings(); };
+$("#oRefs").onchange = (e) => { settings.skipRefs = e.target.checked; saveSettings(); };
+$("#oCites").onchange = (e) => { settings.skipCites = e.target.checked; saveSettings(); };
+$("#oFast").onchange = (e) => { settings.fast = e.target.checked; saveSettings(); };
+if (IS_PHONE) $("#fastHint").textContent = "Uses more of the phone's processor to make recordings sooner. If it does not work on this phone, switch it off.";
+else if (!HAS_GPU) { $("#oFast").disabled = true; $("#fastHint").textContent = "Not available in this browser. Chrome and Edge have it."; }
+
+/* ---------- 7. the player ---------- */
+const audio = new Audio(); audio.preload = "auto";
+let playing = null, lastSave = 0, unlocked = false;
+
+// Phones only let sound start from a tap. Playing a moment of silence during the
+// tap lets the real recording start once it has loaded.
+function unlockAudio() {
+  if (unlocked) return; unlocked = true;
+  const n = 2400, b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 24000, true); v.setUint32(28, 48000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+  audio.src = URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+  audio.play().catch(() => {});
+}
+
+async function loadParts(rec, at, autoplay) {
+  const n = rec.done, parts = await DB.parts(rec.id, n);
+  const secs = parts.reduce((s, p) => s + p.seconds, 0);
+  const old = playing && playing.url;
+  const url = URL.createObjectURL(new Blob(parts.map((p) => p.mp3), { type: "audio/mpeg" }));
+  playing = { rec, n, url, secs, waiting: false };
+  await new Promise((res) => {
+    const on = () => { audio.removeEventListener("loadedmetadata", on); try { audio.currentTime = Math.min(at || 0, Math.max(0, secs - 0.5)); } catch (e) {} audio.playbackRate = settings.playRate; res(); };
+    audio.addEventListener("loadedmetadata", on);
+    audio.src = url; audio.load();
+  });
+  if (old) URL.revokeObjectURL(old);
+  $("#pSeek").max = Math.max(1, Math.floor(secs));
+  if (autoplay) audio.play().catch(() => {});
+  showTime(); mediaInfo();
+}
+
+async function play(rec) {
+  if (playing && playing.rec === rec && playing.n === rec.done) { audio.paused ? audio.play() : audio.pause(); return; }
+  if (playing) rememberPos(true);
+  $("#player").classList.add("on"); $("#pTitle").textContent = rec.title; $("#pNote").textContent = "";
+  const at = rec.pos && rec.pos < rec.seconds - 3 ? rec.pos : 0;
+  await loadParts(rec, at, true);
+}
+// More of the recording has been made since playback started: carry on into it.
+async function extendPlayback() {
+  const p = playing; if (!p || p.rec.done <= p.n) return;
+  const at = p.secs; p.waiting = false; $("#pNote").textContent = "";
+  await loadParts(p.rec, at, true);
+}
+function closePlayer() {
+  if (playing) { rememberPos(true); audio.pause(); URL.revokeObjectURL(playing.url); }
+  playing = null; audio.removeAttribute("src"); audio.load();
+  $("#player").classList.remove("on"); render();
+}
+function rememberPos(force) {
+  if (!playing) return;
+  const now = Date.now(); if (!force && now - lastSave < 5000) return;
+  lastSave = now; playing.rec.pos = audio.currentTime || 0;
+  if (!playing.rec.temp && recs.has(playing.rec.id)) DB.putRec(saved(playing.rec)).catch(() => {});
+}
+function showTime() {
+  if (!playing) return;
+  const t = audio.currentTime || 0;
+  if (!seeking) $("#pSeek").value = Math.floor(t);
+  $("#pTime").textContent = clock(t) + " / " + clock(playing.secs);
+  if ("mediaSession" in navigator && navigator.mediaSession.setPositionState && playing.secs > 0) {
+    try { navigator.mediaSession.setPositionState({ duration: playing.secs, position: Math.min(t, playing.secs), playbackRate: audio.playbackRate || 1 }); } catch (e) {}
+  }
+}
+const seekTo = (t) => { if (playing) { audio.currentTime = Math.max(0, Math.min(playing.secs - 0.3, t)); showTime(); } };
+function mediaInfo() {
+  if (!("mediaSession" in navigator) || !playing) return;
+  navigator.mediaSession.metadata = new MediaMetadata({ title: playing.rec.title, artist: "Doc Reader", album: "Doc Reader", artwork: [{ src: new URL("icon-512.png", location.href).href, sizes: "512x512", type: "image/png" }] });
+  const set = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
+  set("play", () => audio.play()); set("pause", () => audio.pause());
+  set("seekbackward", (d) => seekTo(audio.currentTime - (d.seekOffset || 15)));
+  set("seekforward", (d) => seekTo(audio.currentTime + (d.seekOffset || 30)));
+  set("previoustrack", () => seekTo(audio.currentTime - 15));
+  set("nexttrack", () => seekTo(audio.currentTime + 30));
+  set("seekto", (d) => seekTo(d.seekTime));
+}
+
+let seeking = false;
+audio.addEventListener("timeupdate", () => { showTime(); rememberPos(false); });
+audio.addEventListener("play", () => { $("#pPlay").textContent = "Pause"; });
+audio.addEventListener("pause", () => { $("#pPlay").textContent = "Play"; rememberPos(true); });
+audio.addEventListener("ended", () => {
+  const p = playing; if (!p) return;
+  if (p.rec.done > p.n) return extendPlayback();
+  if (p.rec.status === "working" || p.rec.status === "queued") { p.waiting = true; $("#pNote").textContent = "You have caught up. It carries on when the next part is ready."; return; }
+  p.rec.pos = 0; DB.putRec(saved(p.rec)).catch(() => {});
+  $("#pNote").textContent = p.rec.status === "done" ? "Finished." : "That is all that has been made so far.";
+});
+$("#pPlay").onclick = () => { if (!playing) return; if (audio.ended) seekTo(0); audio.paused ? audio.play() : audio.pause(); };
+$("#pBack").onclick = () => seekTo(audio.currentTime - 15);
+$("#pFwd").onclick = () => seekTo(audio.currentTime + 30);
+$("#pClose").onclick = closePlayer;
+$("#pSeek").addEventListener("input", () => { seeking = true; $("#pTime").textContent = clock(+$("#pSeek").value) + " / " + clock(playing ? playing.secs : 0); });
+$("#pSeek").addEventListener("change", () => { seeking = false; seekTo(+$("#pSeek").value); });
+$("#pRate").value = String(settings.playRate);
+if (!$("#pRate").value) $("#pRate").value = "1";
+$("#pRate").onchange = (e) => { settings.playRate = parseFloat(e.target.value) || 1; audio.playbackRate = settings.playRate; saveSettings(); showTime(); };
+document.addEventListener("keydown", (e) => {
+  if (!playing || e.target.closest("input,textarea,select,button,dialog")) return;
+  if (e.key === " ") { e.preventDefault(); $("#pPlay").click(); }
+  else if (e.key === "ArrowLeft") seekTo(audio.currentTime - 15);
+  else if (e.key === "ArrowRight") seekTo(audio.currentTime + 30);
+});
+window.addEventListener("pagehide", () => rememberPos(true));
+
+/* ---------- start ---------- */
+(async () => {
+  try {
+    for (const r of await DB.allRecs()) {
+      // A recording that was still being made when the page closed: offer "Continue".
+      if (r.status === "working" || r.status === "queued") r.status = "paused";
+      recs.set(r.id, r);
+    }
+  } catch (e) { flash("This browser is not letting the page save recordings (private browsing does this). You can still make one and save the file."); }
+  render();
+})();
+
+if (DEBUG) window.__dr = { recs, settings, engine, engineConfig, buildPieces, clean, stripCites, speakable, pdfParagraphs, docxParagraphs, piecesFromText, DB, audio, get playing() { return playing; }, get rate() { return rate; } };
+</script>
+</body>
+</html>
