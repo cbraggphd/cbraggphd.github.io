@@ -122,7 +122,7 @@ footer{margin-top:40px;color:var(--muted);font-size:16.5px}
   <details class="box" id="optBox">
     <summary>Options</summary>
     <div class="opt sel">
-      <label for="oVoice">Voice</label>
+      <label for="oVoice">Narrator voice</label>
       <select id="oVoice">
         <option value="bf_emma">Emma (British)</option>
         <option value="bf_isabella">Isabella (British)</option>
@@ -131,6 +131,19 @@ footer{margin-top:40px;color:var(--muted);font-size:16.5px}
         <option value="af_heart">Heart (American)</option>
         <option value="af_bella">Bella (American)</option>
         <option value="am_michael">Michael (American)</option>
+      </select>
+    </div>
+    <div class="opt sel">
+      <label for="oVoice2">Voice for spoken lines<small>For stories. Anything in quotation marks is read in this voice, so you can hear when someone is talking.</small></label>
+      <select id="oVoice2">
+        <option value="">Same as the narrator</option>
+        <option value="bm_george">George (British)</option>
+        <option value="bm_fable">Fable (British)</option>
+        <option value="bf_isabella">Isabella (British)</option>
+        <option value="bf_emma">Emma (British)</option>
+        <option value="am_michael">Michael (American)</option>
+        <option value="af_heart">Heart (American)</option>
+        <option value="af_bella">Bella (American)</option>
       </select>
     </div>
     <div class="opt sel">
@@ -247,7 +260,7 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 /* ---------- 2. settings and storage ---------- */
-const DEFAULTS = { voice: "bf_emma", speed: 1, skipRefs: true, skipCites: true, fast: false, playRate: 1 };
+const DEFAULTS = { voice: "bf_emma", voice2: "", speed: 1, skipRefs: true, skipCites: true, fast: false, playRate: 1 };
 const settings = Object.assign({}, DEFAULTS);
 try { Object.assign(settings, JSON.parse(localStorage.getItem("docreader:settings") || "{}")); } catch (e) {}
 const saveSettings = () => { try { localStorage.setItem("docreader:settings", JSON.stringify(settings)); } catch (e) {} };
@@ -334,6 +347,17 @@ function pageBlocks(items, vp, o) {
   steps.sort((a, b) => a - b);
   const usual = steps.length > 4 ? steps[Math.floor(steps.length / 2)] : 1.3;
 
+  // Left edge of the column each line sits in: the leftmost line start within a few
+  // letter-widths. A line that starts further in than that is a paragraph's first line.
+  for (const L of lines) {
+    let left = L.x0;
+    for (const K of lines) if (K.x0 < left && K.x0 > L.x0 - 5 * L.size) left = K.x0;
+    L.indent = L.x0 - left > 0.9 * L.size;
+    // How far right lines like this one reach (same start, same type size).
+    L.right = L.x1;
+    for (const K of lines) if (Math.abs(K.x0 - L.x0) < 0.5 * L.size && Math.abs(K.size - L.size) < 0.1 * L.size && K.x1 > L.right) L.right = K.x1;
+  }
+
   const blocks = []; let b = null;
   for (const L of lines) {
     const t = L.text.trim();
@@ -347,15 +371,22 @@ function pageBlocks(items, vp, o) {
       const heading = L.font !== b.font && (diff > 0.03 || (b.lines === 1 && b.text.length < 90 && !/[.!?,;:]$/.test(b.text)));
       const sameSize = diff < 0.13 && !heading;
       const overlap = L.x0 < b.x1 && L.x1 > b.x0;
-      const indent = L.x0 - b.x0 > 0.9 * b.size && L.x0 - b.x0 < 5 * b.size && /[.!?:"”)]$/.test(b.text);
+      // A new paragraph starts when the text so far has ended a sentence and either
+      // (a) this line starts further in than the block above it, or
+      // (b) it is one of several one-line paragraphs in a row, as in dialogue: the line
+      //     above stopped short of the right edge, or was itself a one-line paragraph.
+      const ended = /[.!?:"”’)…—\]*]$/.test(b.text);
+      const stepIn = L.x0 - b.x0 > 0.9 * b.size && L.x0 - b.x0 < 5 * b.size;
+      const oneLiner = L.indent && (b.lastX1 < b.lastRight - 1.5 * b.size || (b.lines === 1 && b.firstIndent));
+      const indent = ended && (stepIn || oneLiner);
       same = near && sameSize && overlap && !indent;
     }
     if (same) {
       if (/[A-Za-z][-\u2010\u00ad]$/.test(b.text) && /^[a-z]/.test(t)) b.text = b.text.slice(0, -1) + t; // word split across lines
       else b.text += " " + t;
-      b.lastY = L.y; b.y1 = L.y + L.size * 0.25; b.x0 = Math.min(b.x0, L.x0); b.x1 = Math.max(b.x1, L.x1); b.lines++;
+      b.lastY = L.y; b.y1 = L.y + L.size * 0.25; b.x0 = Math.min(b.x0, L.x0); b.x1 = Math.max(b.x1, L.x1); b.lines++; b.lastX1 = L.x1; b.lastRight = L.right;
     } else {
-      b = { text: t, y0: L.y - L.size, y1: L.y + L.size * 0.25, lastY: L.y, x0: L.x0, x1: L.x1, size: L.size, font: L.font, lines: 1, h: vp.height };
+      b = { text: t, y0: L.y - L.size, y1: L.y + L.size * 0.25, lastY: L.y, x0: L.x0, x1: L.x1, size: L.size, font: L.font, lines: 1, h: vp.height, lastX1: L.x1, lastRight: L.right, firstIndent: L.indent };
       blocks.push(b);
     }
   }
@@ -391,22 +422,34 @@ async function pdfParagraphs(buf, o, onPage) {
   const need = Math.max(2, Math.floor(pages.length / 3));
   const paras = [];
   for (const blocks of pages) {
-    for (const b of blocks) {
-      if (inMargin(b) && ((count.get(key(b.text)) || 0) >= need || /^[\divxlc\s\-–|of page]+$/i.test(b.text))) continue;
-      paras.push(b.text.replace(/\s+/g, " ").trim());
-    }
+    const kept = blocks.filter((b) => !(inMargin(b) && ((count.get(key(b.text)) || 0) >= need || /^[\divxlc\s\-–|of page]+$/i.test(b.text))));
+    kept.forEach((b, i) => paras.push({ t: b.text.replace(/\s+/g, " ").trim(), first: i === 0, last: i === kept.length - 1 }));
   }
   return { paras: mergeSplit(paras), pages: numPages };
 }
 
 // A paragraph cut in two by a page or column break: join the halves.
-function mergeSplit(paras) {
-  const out = [];
-  for (const t of paras) {
-    const prev = out[out.length - 1];
-    if (prev && /^[a-z]/.test(t) && !/[.!?:;"”)]$/.test(prev)) {
-      out[out.length - 1] = /[A-Za-z][-\u2010\u00ad]$/.test(prev) ? prev.slice(0, -1) + t : prev + " " + t;
-    } else out.push(t);
+function mergeSplit(items) {
+  const out = []; let prev = null;
+  for (const it of items) {
+    const t = it.t, p = out[out.length - 1];
+    if (prev) {
+      // (a) the first half has no sentence ending and the second starts in lower case
+      let join = /^[a-z]/.test(t) && !/[.!?:;"”)]$/.test(p);
+      // (b) across a page break: a long line that stops mid-sentence, or speech whose
+      //     opening quotation mark has not been closed yet
+      if (!join && prev.last && it.first) {
+        const midSentence = p.length > 80 && !/[.!?:;"”’)…—\]*]$/.test(p);
+        const openQuote = (p.match(/“/g) || []).length > (p.match(/”/g) || []).length && !/^“/.test(t);
+        join = midSentence || openQuote;
+      }
+      if (join) {
+        out[out.length - 1] = /[A-Za-z][-\u2010\u00ad]$/.test(p) && /^[a-z]/.test(t) ? p.slice(0, -1) + t : p + " " + t;
+        prev = { first: prev.first, last: it.last };
+        continue;
+      }
+    }
+    out.push(t); prev = it;
   }
   return out;
 }
@@ -503,7 +546,37 @@ function splitLong(t, limit) {
   return parts;
 }
 
-// Paragraphs -> list of [text, pause after it in seconds].
+// Split a paragraph into narration and spoken lines (the text inside quotation marks).
+// A quoted word inside a sentence, like the word "Bandit", is not speech and stays put.
+// Returns [[text, 1 if spoken else 0], ...].
+function speechParts(p, single) {
+  const out = []; let last = 0, m;
+  // Single marks double as apostrophes, so a closing one only counts after punctuation.
+  const re = single ? /‘([^‘]+?[.!?,…—])’(?=[\s)]|$)/g : /[“"]([^“”"]+)[”"]/g;
+  while ((m = re.exec(p))) {
+    const inner = m[1].trim(), before = p.slice(0, m.index).trimEnd(), words = inner.split(/\s+/).length;
+    const spoken = /[.!?…,:—-]$/.test(inner) || (before === "" && words >= 2) || (words >= 4 && /[,:.!?]$/.test(before));
+    if (!spoken || !/[A-Za-z]/.test(inner)) continue;
+    if (m.index > last) out.push([p.slice(last, m.index).trim(), 0]);
+    out.push([inner, 1]);
+    last = m.index + m[0].length;
+  }
+  if (last < p.length) out.push([p.slice(last).trim(), 0]);
+  return out.filter((x) => /[A-Za-z0-9]/.test(x[0]));
+}
+// British books often use single quotation marks for speech.
+const usesSingleQuotes = (paras) => { const all = paras.join(" "); return (all.match(/‘/g) || []).length > 2 * (all.match(/[“"]/g) || []).length; };
+
+// One cleaned paragraph -> pieces [text, pause after it in seconds, 1 if spoken].
+function paraPieces(p, endGap, speech, single) {
+  const segs = speech ? speechParts(p, single) : [[p, 0]];
+  const out = [];
+  for (const [txt, spoken] of segs) for (const part of splitLong(txt, 450)) out.push([part, 0.05, spoken]);
+  if (out.length) out[out.length - 1][1] = endGap;
+  return out;
+}
+
+// Paragraphs -> list of pieces. With o.speech, spoken lines are marked for the second voice.
 function buildPieces(paras, o) {
   let skipped = false;
   if (o.skipRefs) {
@@ -511,34 +584,34 @@ function buildPieces(paras, o) {
     const at = paras.findIndex((p, i) => i >= from && /^(?:\d+\.?\s*)?(?:references|reference list|references and notes|bibliography|works cited|literature cited)\.?$/i.test(p.trim()));
     if (at > 0) { paras = paras.slice(0, at); skipped = true; }
   }
+  const single = o.speech && usesSingleQuotes(paras);
   const out = [];
   for (const raw of paras) {
     let p = clean(raw, o);
     if (p.replace(/[^A-Za-z]/g, "").length < 2) continue; // nothing to pronounce
-    const heading = p.length < 120 && !/[.!?:;"”)]$/.test(p);
-    if (!/[.!?:;"”)]$/.test(p)) p += ".";
+    const heading = p.length < 120 && !/[.!?:;"”’)…]$/.test(p);
+    if (!/[.!?:;"”’)…]$/.test(p)) p += ".";
     if (heading && out.length) out[out.length - 1][1] = 0.8;
-    const parts = splitLong(p, 450);
-    parts.forEach((s, k) => out.push([s, k < parts.length - 1 ? 0.05 : heading ? 0.6 : 0.45]));
+    for (const piece of paraPieces(p, heading ? 0.6 : 0.45, o.speech, single)) out.push(piece);
   }
   return { pieces: out, skipped };
 }
 
 // Text typed or edited by hand: blank lines separate paragraphs.
-function piecesFromText(text) {
+function piecesFromText(text, speech) {
+  const paras = text.replace(/\r/g, "").split(/\n\s*\n/).map((x) => x.replace(/\s+/g, " ").trim());
+  const single = speech && usesSingleQuotes(paras);
   const out = [];
-  for (const para of text.replace(/\r/g, "").split(/\n\s*\n/)) {
-    let p = para.replace(/\s+/g, " ").trim();
+  for (let p of paras) {
     if (p.replace(/[^A-Za-z]/g, "").length < 2) continue;
-    if (!/[.!?:;"”)]$/.test(p)) p += ".";
-    const parts = splitLong(p, 450);
-    parts.forEach((s, k) => out.push([s, k < parts.length - 1 ? 0.05 : 0.45]));
+    if (!/[.!?:;"”’)…]$/.test(p)) p += ".";
+    for (const piece of paraPieces(p, 0.45, speech, single)) out.push(piece);
   }
   return out;
 }
 function textFromPieces(pieces) {
   let s = "";
-  for (const [t, gap] of pieces) s += t + (gap > 0.1 ? "\n\n" : " ");
+  for (const [t, gap, spoken] of pieces) s += (spoken ? "“" + t + "”" : t) + (gap > 0.1 ? "\n\n" : " ");
   return s.trim();
 }
 
@@ -638,7 +711,8 @@ async function addFile(file) {
   try {
     const ext = (file.name.split(".").pop() || "").toLowerCase();
     const buf = await file.arrayBuffer();
-    const o = { skipRefs: settings.skipRefs, skipCites: settings.skipCites };
+    const voice2 = settings.voice2 && settings.voice2 !== settings.voice ? settings.voice2 : "";
+    const o = { skipRefs: settings.skipRefs, skipCites: settings.skipCites, speech: !!voice2 };
     let got;
     if (ext === "pdf" || file.type === "application/pdf") {
       got = await pdfParagraphs(buf, o, (n, of) => { rec.note = "Reading page " + n + " of " + of; patch(rec); });
@@ -650,7 +724,7 @@ async function addFile(file) {
     if (!built.pieces.length) throw new Error(ext === "pdf" ? "SCAN" : "EMPTY");
     rec.pieces = built.pieces;
     rec.chars = built.pieces.reduce((n, p) => n + p[0].length, 0);
-    rec.voice = settings.voice; rec.speed = settings.speed;
+    rec.voice = settings.voice; rec.voice2 = voice2; rec.speed = settings.speed;
     rec.note = built.skipped ? "Reference list left out." : "";
     rec.status = "queued"; delete rec.temp;
     await DB.putRec(saved(rec));
@@ -696,11 +770,11 @@ async function convert(rec) {
     while (rec.done < rec.pieces.length && !st.stop) {
       const i = rec.done, piece = rec.pieces[i];
       const t0 = performance.now();
-      let r = await engine.speak(piece[0], { voice: rec.voice, speed: rec.speed, gap: piece[1] });
+      let r = await engine.speak(piece[0], { voice: piece[2] && rec.voice2 ? rec.voice2 : rec.voice, speed: rec.speed, gap: piece[1] });
       if (!r.ok && engine.cfg && engine.cfg.fast && r.seconds > piece[1] + 0.2) {
         // Faster mode produced bad sound on this device. Switch it off and redo this piece.
         fastOff(); await ensureEngine(); setStatus("");
-        r = await engine.speak(piece[0], { voice: rec.voice, speed: rec.speed, gap: piece[1] });
+        r = await engine.speak(piece[0], { voice: piece[2] && rec.voice2 ? rec.voice2 : rec.voice, speed: rec.speed, gap: piece[1] });
       }
       if (st.gone) return;
       wall += (performance.now() - t0) / 1000; chars += piece[0].length; audioSec += r.seconds;
@@ -777,7 +851,7 @@ function cardHTML(rec) {
   } else if (rec.status === "error") {
     h += '<p class="err">' + esc(rec.error) + '</p><div class="row">' + (rec.pieces ? b("go", "Try again", "primary") : "") + (rec.done > 0 ? b("play", "Listen so far") : "") + b("del", "Remove", "quiet danger") + "</div>";
   } else if (rec.status === "done") {
-    h += '<p class="meta">' + cap(mins(rec.seconds)) + " · " + mb(rec.bytes) + " · " + (VOICES[rec.voice] || "") + (rec.pos > 5 && rec.pos < rec.seconds - 5 ? ' <span class="tag">at ' + clock(rec.pos) + "</span>" : "") + "</p>";
+    h += '<p class="meta">' + cap(mins(rec.seconds)) + " · " + mb(rec.bytes) + " · " + (VOICES[rec.voice] || "") + (rec.voice2 ? " and " + (VOICES[rec.voice2] || "a second voice") : "") + (rec.pos > 5 && rec.pos < rec.seconds - 5 ? ' <span class="tag">at ' + clock(rec.pos) + "</span>" : "") + "</p>";
     h += '<div class="row">' + b("play", '<svg class="i" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>Play', "primary") + b("save", "Save file") + (CAN_SHARE ? b("share", "Share") : "") + b("name", "Rename", "quiet") + b("del", "Delete", "quiet danger") + "</div>";
   } else {
     const pct = rec.pieces.length ? (rec.done / rec.pieces.length) * 100 : 0;
@@ -877,7 +951,7 @@ async function openEdit(rec) {
 }
 $("#editSave").onclick = async () => {
   const { rec } = editing;
-  const pieces = piecesFromText($("#editText").value);
+  const pieces = piecesFromText($("#editText").value, !!rec.voice2);
   if (!pieces.length) { alert("There is no text left to read."); return; }
   if (playing && playing.rec === rec) closePlayer();
   rec.pieces = pieces; rec.done = 0; rec.seconds = 0; rec.bytes = 0; rec.pos = 0; rec.status = "queued"; rec.note = "";
@@ -911,6 +985,9 @@ window.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remo
 $("#oVoice").value = settings.voice; $("#oSpeed").value = String(settings.speed);
 $("#oRefs").checked = settings.skipRefs; $("#oCites").checked = settings.skipCites; $("#oFast").checked = settings.fast;
 $("#oVoice").onchange = (e) => { settings.voice = e.target.value; saveSettings(); };
+$("#oVoice2").value = settings.voice2 || "";
+if ($("#oVoice2").selectedIndex < 0) $("#oVoice2").value = "";
+$("#oVoice2").onchange = (e) => { settings.voice2 = e.target.value; saveSettings(); };
 $("#oSpeed").onchange = (e) => { settings.speed = parseFloat(e.target.value) || 1; saveSettings(); };
 $("#oRefs").onchange = (e) => { settings.skipRefs = e.target.checked; saveSettings(); };
 $("#oCites").onchange = (e) => { settings.skipCites = e.target.checked; saveSettings(); };
@@ -1037,7 +1114,7 @@ window.addEventListener("pagehide", () => rememberPos(true));
   render();
 })();
 
-if (DEBUG) window.__dr = { recs, settings, engine, engineConfig, buildPieces, clean, stripCites, speakable, pdfParagraphs, docxParagraphs, piecesFromText, DB, audio, get playing() { return playing; }, get rate() { return rate; } };
+if (DEBUG) window.__dr = { recs, settings, engine, engineConfig, buildPieces, speechParts, textFromPieces, clean, stripCites, speakable, pdfParagraphs, docxParagraphs, piecesFromText, DB, audio, get playing() { return playing; }, get rate() { return rate; } };
 </script>
 </body>
 </html>

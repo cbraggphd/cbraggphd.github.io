@@ -24,3 +24,10 @@ phone) and is then kept by the browser. Documents and recordings never leave the
 Running headers, footers and page numbers are dropped; words split across lines
 are rejoined; citations such as (Smith, 2020) and [12] are left out; the reference
 list is skipped; statistics symbols are spoken ("p less than .05").
+
+## Two voices for stories
+
+Options has "Voice for spoken lines". When it is set, text inside quotation marks is
+read in that second voice and everything else in the narrator voice. The page does not
+try to work out which character is speaking; a test on a full novel chapter showed that
+guess is wrong too often to be useful.
