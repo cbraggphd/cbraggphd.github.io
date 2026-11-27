@@ -260,9 +260,14 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 /* ---------- 2. settings and storage ---------- */
-const DEFAULTS = { voice: "bf_emma", voice2: "", speed: 1, skipRefs: true, skipCites: true, fast: false, playRate: 1 };
+const DEFAULTS = { v: 2, voice: "bf_emma", voice2: "bf_isabella", speed: 1, skipRefs: true, skipCites: true, fast: false, playRate: 1 };
 const settings = Object.assign({}, DEFAULTS);
-try { Object.assign(settings, JSON.parse(localStorage.getItem("docreader:settings") || "{}")); } catch (e) {}
+try {
+  const kept = JSON.parse(localStorage.getItem("docreader:settings") || "{}");
+  // Settings saved before the second voice became the default pick up the new default once.
+  if (!kept.v || kept.v < 2) { delete kept.voice2; kept.v = 2; }
+  Object.assign(settings, kept);
+} catch (e) {}
 const saveSettings = () => { try { localStorage.setItem("docreader:settings", JSON.stringify(settings)); } catch (e) {} };
 
 const DB = (() => {
