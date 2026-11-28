@@ -28,6 +28,10 @@
     --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);}
 }
 *{box-sizing:border-box}
+[hidden]{display:none !important}
+.resetopt{display:flex;gap:12px;align-items:flex-start;padding:12px 0 4px;cursor:pointer}
+.resetopt input{width:26px;height:26px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.resetopt small{display:block;color:var(--muted);font-size:16px}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);
   font:400 19px/1.6 "Atkinson Hyperlegible",Verdana,"Segoe UI",system-ui,sans-serif;letter-spacing:.012em;word-spacing:.04em}
@@ -118,6 +122,9 @@ footer{margin-top:40px;color:var(--muted);font-size:16.5px}
 
   <h2>Your recordings</h2>
   <div id="list"></div>
+  <div class="row" id="resetRow" hidden style="margin-top:4px">
+    <button class="btn danger" id="resetBtn" type="button">Remove all files and reset</button>
+  </div>
 
   <details class="box" id="optBox">
     <summary>Options</summary>
@@ -219,6 +226,17 @@ footer{margin-top:40px;color:var(--muted);font-size:16.5px}
   </div>
 </dialog>
 
+<dialog id="resetDlg">
+  <h2>Remove all files and reset?</h2>
+  <p>This deletes every recording on this device, including any that are still being made. It cannot be undone.</p>
+  <p class="hint">Save any MP3 you want to keep first. The voice stays downloaded, so you will not have to wait for it again.</p>
+  <label class="resetopt"><input type="checkbox" id="resetOpts" checked><span>Also put Options back to the starting settings<small>Emma and Isabella, normal speed, reference lists and citations skipped.</small></span></label>
+  <div class="row" style="margin-top:14px">
+    <button class="btn primary" id="resetGo" type="button" style="background:var(--warn);border-color:var(--warn)">Remove everything</button>
+    <button class="btn" id="resetCancel" type="button">Cancel</button>
+  </div>
+</dialog>
+
 <dialog id="nameDlg">
   <h2>Rename</h2>
   <input type="text" id="nameText" aria-label="Name">
@@ -298,6 +316,7 @@ const DB = (() => {
     parts: (id, upto) => run("parts", "readonly", (t) => t.objectStore("parts").getAll(span(id, upto))),
     delParts: (id) => run("parts", "readwrite", (t) => { t.objectStore("parts").delete(span(id)); }),
     delRec: (id) => run(["recs", "parts"], "readwrite", (t) => { t.objectStore("recs").delete(id); t.objectStore("parts").delete(span(id)); }),
+    clearAll: () => run(["recs", "parts"], "readwrite", (t) => { t.objectStore("recs").clear(); t.objectStore("parts").clear(); }),
   };
 })();
 
@@ -702,7 +721,7 @@ function fastOff() {
 /* ---------- 5. the queue ---------- */
 const recs = new Map();       // id -> recording
 const live = new Map();       // id -> { stop, waiters[] } (not saved)
-let current = null, pumping = false, rate = null;
+let current = null, pumping = false, rate = null, resets = 0;
 
 const state = (id) => { let s = live.get(id); if (!s) live.set(id, (s = { stop: false, waiters: [] })); return s; };
 const saved = (r) => { const c = Object.assign({}, r); delete c.temp; return c; };
@@ -713,6 +732,7 @@ async function addFile(file) {
   const title = file.name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ").replace(/\s+/g, " ").trim() || "Recording";
   const rec = { id, title, created: Date.now(), status: "reading", temp: true, done: 0, seconds: 0, bytes: 0, note: "" };
   recs.set(id, rec); render();
+  const gen = resets;
   try {
     const ext = (file.name.split(".").pop() || "").toLowerCase();
     const buf = await file.arrayBuffer();
@@ -731,12 +751,14 @@ async function addFile(file) {
     rec.chars = built.pieces.reduce((n, p) => n + p[0].length, 0);
     rec.voice = settings.voice; rec.voice2 = voice2; rec.speed = settings.speed;
     rec.note = built.skipped ? "Reference list left out." : "";
+    if (gen !== resets) return;                         // everything was removed while this file was read
     rec.status = "queued"; delete rec.temp;
     await DB.putRec(saved(rec));
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
     render(); pump();
   } catch (e) {
-    rec.status = "error"; rec.note = "";
+    if (gen !== resets) return;
+    rec.status = "error"; rec.note = ""; recs.set(rec.id, rec);
     const m = String((e && e.message) || e);
     rec.error = m === "SCAN" ? "This PDF is a scan (pictures of pages), so there is no text in it to read."
       : m === "EMPTY" ? "I could not find any text in this file."
@@ -879,6 +901,7 @@ function render() {
   const all = [...recs.values()].sort((a, b) => b.created - a.created);
   $("#list").innerHTML = all.length ? all.map(cardHTML).join("") : '<p class="empty">Nothing here yet. Add a PDF above and it will start by itself.</p>';
   const done = all.filter((r) => r.bytes > 0), total = done.reduce((n, r) => n + r.bytes, 0);
+  $("#resetRow").hidden = !all.length;
   $("#foot").textContent = "Recordings are kept in this browser on this device" + (total ? " (" + mb(total) + " so far)." : ".") + " Nothing is uploaded.";
 }
 // Update one card's progress without redrawing the whole list.
@@ -893,7 +916,7 @@ function patch(rec) {
 
 let flashTimer = 0;
 function setStatus(t, bad) { const s = $("#status"); s.textContent = t; s.className = (t ? "on" : "") + (bad ? " bad" : ""); }
-function flash(t) { setStatus(t, true); clearTimeout(flashTimer); flashTimer = setTimeout(() => { if ($("#status").textContent === t) setStatus(""); }, 9000); }
+function flash(t, good) { setStatus(t, !good); clearTimeout(flashTimer); flashTimer = setTimeout(() => { if ($("#status").textContent === t) setStatus(""); }, 9000); }
 
 $("#list").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-act]"); if (!btn) return;
@@ -987,11 +1010,16 @@ window.addEventListener("dragleave", (e) => { if (!e.relatedTarget) drop.classLi
 window.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); for (const f of e.dataTransfer.files) addFile(f); });
 
 // Options
-$("#oVoice").value = settings.voice; $("#oSpeed").value = String(settings.speed);
-$("#oRefs").checked = settings.skipRefs; $("#oCites").checked = settings.skipCites; $("#oFast").checked = settings.fast;
+function showSettings() {
+  $("#oVoice").value = settings.voice; $("#oSpeed").value = String(settings.speed);
+  $("#oRefs").checked = settings.skipRefs; $("#oCites").checked = settings.skipCites; $("#oFast").checked = settings.fast;
+  $("#oVoice2").value = settings.voice2 || "";
+  if ($("#oVoice2").selectedIndex < 0) $("#oVoice2").value = "";
+  $("#pRate").value = String(settings.playRate);
+  if (!$("#pRate").value) $("#pRate").value = "1";
+}
+showSettings();
 $("#oVoice").onchange = (e) => { settings.voice = e.target.value; saveSettings(); };
-$("#oVoice2").value = settings.voice2 || "";
-if ($("#oVoice2").selectedIndex < 0) $("#oVoice2").value = "";
 $("#oVoice2").onchange = (e) => { settings.voice2 = e.target.value; saveSettings(); };
 $("#oSpeed").onchange = (e) => { settings.speed = parseFloat(e.target.value) || 1; saveSettings(); };
 $("#oRefs").onchange = (e) => { settings.skipRefs = e.target.checked; saveSettings(); };
@@ -999,6 +1027,24 @@ $("#oCites").onchange = (e) => { settings.skipCites = e.target.checked; saveSett
 $("#oFast").onchange = (e) => { settings.fast = e.target.checked; saveSettings(); };
 if (IS_PHONE) $("#fastHint").textContent = "Uses more of the phone's processor to make recordings sooner. If it does not work on this phone, switch it off.";
 else if (!HAS_GPU) { $("#oFast").disabled = true; $("#fastHint").textContent = "Not available in this browser. Chrome and Edge have it."; }
+
+// Remove all files and reset
+$("#resetBtn").onclick = () => { $("#resetOpts").checked = true; $("#resetDlg").showModal(); };
+$("#resetCancel").onclick = () => $("#resetDlg").close();
+$("#resetGo").onclick = async () => {
+  const opts = $("#resetOpts").checked;
+  $("#resetDlg").close();
+  resets++;
+  if (playing) closePlayer();
+  for (const r of recs.values()) state(r.id).gone = true;
+  for (const r of recs.values()) if (r.status === "queued") r.status = "paused";
+  if (current) { state(current.id).stop = true; engine.fail(new Error("reset")); }  // stop the recording being made
+  recs.clear();
+  try { await DB.clearAll(); } catch (e) {}
+  if (opts) { Object.assign(settings, DEFAULTS); saveSettings(); showSettings(); audio.playbackRate = settings.playRate; }
+  render(); setStatus("");
+  flash(opts ? "All recordings are removed, and Options are back to the starting settings." : "All recordings are removed.", true);
+};
 
 /* ---------- 7. the player ---------- */
 const audio = new Audio(); audio.preload = "auto";
@@ -1096,8 +1142,6 @@ $("#pFwd").onclick = () => seekTo(audio.currentTime + 30);
 $("#pClose").onclick = closePlayer;
 $("#pSeek").addEventListener("input", () => { seeking = true; $("#pTime").textContent = clock(+$("#pSeek").value) + " / " + clock(playing ? playing.secs : 0); });
 $("#pSeek").addEventListener("change", () => { seeking = false; seekTo(+$("#pSeek").value); });
-$("#pRate").value = String(settings.playRate);
-if (!$("#pRate").value) $("#pRate").value = "1";
 $("#pRate").onchange = (e) => { settings.playRate = parseFloat(e.target.value) || 1; audio.playbackRate = settings.playRate; saveSettings(); showTime(); };
 document.addEventListener("keydown", (e) => {
   if (!playing || e.target.closest("input,textarea,select,button,dialog")) return;
@@ -1119,7 +1163,7 @@ window.addEventListener("pagehide", () => rememberPos(true));
   render();
 })();
 
-if (DEBUG) window.__dr = { recs, settings, engine, engineConfig, buildPieces, speechParts, textFromPieces, clean, stripCites, speakable, pdfParagraphs, docxParagraphs, piecesFromText, DB, audio, get playing() { return playing; }, get rate() { return rate; } };
+if (DEBUG) window.__dr = { DEFAULTS, recs, settings, engine, engineConfig, buildPieces, speechParts, textFromPieces, id3, clean, stripCites, speakable, pdfParagraphs, docxParagraphs, piecesFromText, DB, audio, get playing() { return playing; }, get rate() { return rate; } };
 </script>
 </body>
 </html>
