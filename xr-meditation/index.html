@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XR Meditation and Interview Skills | OPAL at CCSU</title>
+<meta name="description" content="Five minutes of meditation improved how students deliver in interviews. A summary of findings from 242 CCSU students practicing job interviews with an AI interviewer in virtual reality.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Five minutes of meditation improved how students deliver in interviews">
+<meta property="og:description" content="We studied 242 CCSU students practicing job interviews with an AI interviewer in virtual reality.">
+<meta name="theme-color" content="#372B68">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/icon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  XR meditation findings: public summary for employers, community partners, and students.
+  Same design as the partner sessions page (../xr/). The findings text is the lab's
+  approved copy; do not change numbers or wording without the PI.
+  Page added November 2026.
+-->
+<style>
+  :root{
+    --indigo:#372B68; --slate:#314F75; --steel:#4A6486; --mist:#798FA8; --coral:#F2513E;
+    --rule:#E6E9EC; --panel:#F4F6F8; --paper:#FFFFFF; --on-indigo:#D7D3E6;
+    --font:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --measure:40rem;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *,*::before,*::after{box-sizing:inherit;margin:0;padding:0;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;}
+  body{font-family:var(--font);font-size:1rem;line-height:1.72;color:var(--slate);background:var(--paper);}
+  img{max-width:100%;height:auto;display:block;}
+  a{color:var(--indigo);font-weight:500;text-underline-offset:.2em;text-decoration-thickness:1px;}
+  a:hover{text-decoration-color:var(--coral);text-decoration-thickness:2px;}
+  :focus-visible{outline:3px solid var(--coral);outline-offset:3px;border-radius:2px;}
+  .skip{position:absolute;left:-9999px;top:0;background:#fff;color:var(--indigo);padding:.6rem 1rem;z-index:10;}
+  .skip:focus{left:1rem;top:1rem;}
+  .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  .wrap{max-width:62rem;margin:0 auto;padding:0 1.25rem;}
+  .prose{max-width:var(--measure);}
+  h1,h2,h3{font-family:var(--font);color:var(--indigo);line-height:1.15;}
+  h2{font-size:clamp(1.55rem,3.6vw,2.05rem);font-weight:600;letter-spacing:-.01em;margin-bottom:.9rem;}
+  p + p{margin-top:.85rem;}
+  section{padding:3.25rem 0 0;}
+
+  .band{background:var(--indigo);color:#fff;padding:1.5rem 0 2.6rem;}
+  .topline{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .lockup{display:flex;align-items:center;gap:.85rem;color:#fff;}
+  .lockup .mark{width:40px;height:40px;flex:none;}
+  .lockup .wm{font-weight:600;font-size:1.3rem;letter-spacing:.12em;line-height:1;}
+  .lockup .sep{width:1px;height:1.6rem;background:rgba(255,255,255,.35);}
+  .lockup .org{font-weight:400;font-size:1.2rem;letter-spacing:.06em;line-height:1;color:var(--on-indigo);}
+  .home{color:var(--on-indigo);font-weight:400;font-size:.95rem;}
+  .home:hover{color:#fff;}
+  .eyebrow{margin-top:2.3rem;font-weight:500;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;color:var(--on-indigo);}
+  .band h1{color:#fff;font-size:clamp(2.1rem,6vw,3.4rem);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:.5rem 0 1rem;max-width:20ch;}
+  .lead{font-size:1.1rem;line-height:1.65;max-width:38rem;color:#EEECF5;}
+
+  /* Key numbers: three callouts in a row that stack on narrow screens */
+  .stats{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:.4rem;}
+  .stats li{background:var(--panel);border-top:4px solid var(--coral);padding:1.15rem 1.2rem 1.25rem;}
+  .stats .big{display:block;font-weight:700;font-size:clamp(2.1rem,5vw,2.7rem);line-height:1.05;letter-spacing:-.02em;color:var(--indigo);}
+  .stats .what{display:block;margin-top:.45rem;font-size:1rem;line-height:1.5;color:var(--slate);}
+
+  .about{margin-top:3.25rem;padding:1.2rem 1.3rem;background:var(--panel);border-left:4px solid var(--indigo);max-width:44rem;font-size:.9rem;line-height:1.6;color:var(--slate);}
+  .about h2{font-size:1.05rem;font-weight:600;letter-spacing:0;margin-bottom:.45rem;}
+  .about p + p{margin-top:.6rem;}
+
+  footer{margin-top:3.5rem;padding:1.6rem 0 2.4rem;border-top:1px solid var(--rule);font-size:.85rem;color:var(--steel);}
+  footer p + p{margin-top:.4rem;}
+
+  @media (max-width:44rem){
+    .stats{grid-template-columns:1fr;}
+  }
+  @media (max-width:34rem){
+    .eyebrow{margin-top:1.7rem;}
+  }
+  @media print{
+    .skip{display:none !important;}
+    .band{background:#fff;color:var(--indigo);}
+    .band h1,.lead,.lockup,.eyebrow{color:var(--indigo);}
+    section{padding-top:1.6rem;break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="band">
+  <div class="wrap">
+    <div class="topline">
+      <div class="lockup">
+        <img class="mark" src="../assets/opal-mark-indigo.png" alt="" width="40" height="40">
+        <span class="wm">OPAL</span><span class="sep" aria-hidden="true"></span><span class="org">CCSU</span>
+        <span class="vh">, Organizational Psychology Answers Lab, Central Connecticut State University</span>
+      </div>
+      <a class="home" href="../">Caleb Bragg, Ph.D.</a>
+    </div>
+
+    <p class="eyebrow">XR Meditation and Interview Skills</p>
+    <h1>Five minutes of meditation improved how students deliver in interviews</h1>
+    <p class="lead">We studied 242 CCSU students practicing job interviews with an AI interviewer in virtual reality. Each student did the interview twice. Between the two, some did a five-minute guided breathing meditation, either in the headset or with a live guide. Others simply sat and listened to music.</p>
+  </div>
+</header>
+
+<main id="main">
+
+  <section aria-labelledby="numbers">
+    <div class="wrap">
+      <h2 id="numbers" class="vh">Key numbers</h2>
+      <ul class="stats">
+        <li><span class="big">242</span> <span class="what">students in the CCSU XR Lab</span></li>
+        <li><span class="big">About 10%</span> <span class="what">higher delivery scores for students who meditated (7.4 vs. 6.7 out of 10)</span></li>
+        <li><span class="big">5 minutes</span> <span class="what">of guided breathing</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="practice">
+    <div class="wrap"><div class="prose">
+      <h2 id="practice">Practice helped everyone</h2>
+      <p>Every group got better the second time. Overall interview scores rose from 5.3 to 5.7 out of 10. Students also felt less anxious and came away more positive about VR as a learning tool, with attitude scores up 16%. Practice alone drives much of that.</p>
+    </div></div>
+  </section>
+
+  <section aria-labelledby="spoke">
+    <div class="wrap"><div class="prose">
+      <h2 id="spoke">Meditation changed how students spoke</h2>
+      <p>Only the students who meditated improved their delivery: eye contact, body language, pace, clarity, and fewer filler words. Students who just rested did not. By the second interview, meditators&rsquo; delivery scores were about 10% higher than the rest group&rsquo;s (7.4 vs. 6.7 out of 10). These differences were statistically significant, meaning they are very unlikely to be due to chance.</p>
+      <p>The headset meditation worked as well as a live guide, so it can be added to training without extra staff.</p>
+    </div></div>
+  </section>
+
+  <section aria-labelledby="matters">
+    <div class="wrap"><div class="prose">
+      <h2 id="matters">Why it matters</h2>
+      <p>A five-minute exercise improved the interview skills employers notice first. We are now testing this directly in our next study.</p>
+    </div>
+
+      <aside class="about" aria-labelledby="about-h">
+        <h2 id="about-h">About the study</h2>
+        <p>Conducted by the Organizational Psychology Answers Lab (OPAL) in the <a href="https://www.ccsu.edu/xr-lab">CCSU XR Lab</a>, Department of Psychological Science, Central Connecticut State University. Funded by a 2026&ndash;2027 CCSU Faculty-Student Research Grant (&ldquo;XR Meditation and Virtual Skill Acquisition II&rdquo;). An earlier phase of this work was presented at the Eastern Psychological Association, Boston, 2026.</p>
+        <p>Contact: Caleb Bragg, PhD, Principal Investigator &middot; <a href="mailto:bragg.cb@ccsu.edu">bragg.cb@ccsu.edu</a></p>
+      </aside>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>OPAL, the Organizational Psychology Answers Lab, Department of Psychological Science, Central Connecticut State University, in partnership with the <a href="https://www.ccsu.edu/xr-lab">CCSU XR Lab</a>.</p>
+    <p>Page added November 2026. <a href="../xr/">Employer and community partner sessions</a> &middot; <a href="../">Back to Caleb Bragg, Ph.D.</a></p>
+  </div>
+</footer>
+</body>
+</html>
